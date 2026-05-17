@@ -1,10 +1,13 @@
 import os
 import json
 import unicodedata
+import shutil
+from datetime import datetime
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DATASET_PATH = os.path.join(BASE_DIR, "dataset")
 PEOPLE_JSON_PATH = os.path.join(BASE_DIR, "people.json")
+DELETED_DATASET_PATH = os.path.join(BASE_DIR, "deleted_dataset")
 
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
 
@@ -145,3 +148,45 @@ def get_next_image_path(raw_name):
             return file_path
 
         index += 1
+
+def delete_person(raw_name, backup=True):
+    ensure_dataset_dir()
+
+    raw_name = normalize_raw_name(raw_name)
+
+    if not raw_name:
+        raise ValueError("Tên thư mục / mã người dùng không được để trống")
+
+    people = load_people()
+    display_name = people.get(raw_name, raw_name)
+
+    person_dir = os.path.join(DATASET_PATH, raw_name)
+    person_exists = os.path.exists(person_dir)
+    mapping_exists = raw_name in people
+
+    if not person_exists and not mapping_exists:
+        raise ValueError(f"Không tìm thấy người dùng: {raw_name}")
+
+    backup_path = None
+
+    if person_exists:
+        if backup:
+            os.makedirs(DELETED_DATASET_PATH, exist_ok=True)
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_folder_name = f"{raw_name}_{timestamp}"
+            backup_path = os.path.join(DELETED_DATASET_PATH, backup_folder_name)
+
+            shutil.move(person_dir, backup_path)
+        else:
+            shutil.rmtree(person_dir)
+
+    if mapping_exists:
+        people.pop(raw_name, None)
+        save_people(people)
+
+    return {
+        "raw_name": raw_name,
+        "display_name": display_name,
+        "backup_path": backup_path
+    }

@@ -2,6 +2,7 @@ import os
 import pickle
 import cv2
 import face_recognition
+from datetime import datetime
 
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -115,6 +116,43 @@ def train_model(progress_callback=None):
         progress_callback("Train model hoàn tất.")
 
     return result
+
+def get_model_info():
+    if not os.path.exists(ENCODINGS_PATH):
+        return {
+            "exists": False,
+            "total_encodings": 0,
+            "people_count": 0,
+            "updated_at": None,
+            "error": None
+        }
+
+    try:
+        with open(ENCODINGS_PATH, "rb") as f:
+            data = pickle.loads(f.read())
+
+        encodings = data.get("encodings", [])
+        names = data.get("names", [])
+
+        modified_time = os.path.getmtime(ENCODINGS_PATH)
+        updated_at = datetime.fromtimestamp(modified_time).strftime("%Y-%m-%d %H:%M:%S")
+
+        return {
+            "exists": True,
+            "total_encodings": len(encodings),
+            "people_count": len(set(names)),
+            "updated_at": updated_at,
+            "error": None
+        }
+
+    except Exception as e:
+        return {
+            "exists": True,
+            "total_encodings": 0,
+            "people_count": 0,
+            "updated_at": None,
+            "error": str(e)
+        }
 
 
 if __name__ == "__main__":

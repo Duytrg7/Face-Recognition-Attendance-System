@@ -34,3 +34,6 @@ venv/
 
 # Corrupted git backup
 .git_corrupt_backup/
+
+# Deleted face dataset backup
+deleted_dataset/

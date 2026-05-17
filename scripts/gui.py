@@ -24,10 +24,11 @@ from people_manager import (
     add_or_update_person,
     get_next_image_path,
     get_person_image_count,
-    load_people
+    load_people,
+    delete_person
 )
 
-from model_trainer import train_model
+from model_trainer import train_model, get_model_info
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ENCODINGS_PATH = os.path.join(BASE_DIR, "encodings.pickle")
@@ -81,6 +82,9 @@ class FaceAttendanceApp:
         self.capture_raw_name = None
         self.capture_display_name = None
 
+        self.capture_saved_count = 0
+        self.dataset_changed = False
+
         # Train model variables
         self.train_running = False
         self.train_thread = None
@@ -93,6 +97,7 @@ class FaceAttendanceApp:
         self.refresh_recent_attendance()
         self.auto_refresh_recent_attendance()
         self.load_people_list()
+        self.update_model_status()
 
         # Bắt đầu vòng lặp đọc queue cho UI
         self.process_camera_queue()
@@ -319,6 +324,26 @@ class FaceAttendanceApp:
 
         self.people_tree.pack(fill="both", expand=True)
 
+        people_button_frame = ttk.Frame(list_frame)
+        people_button_frame.pack(fill="x", pady=(8, 0))
+
+        ttk.Button(
+            people_button_frame,
+            text="Chọn để sửa",
+            command=self.on_load_selected_person
+        ).pack(side="left", padx=(0, 8))
+
+        ttk.Button(
+            people_button_frame,
+            text="Xóa người được chọn",
+            command=self.on_delete_selected_person
+        ).pack(side="left")
+
+        self.people_tree.bind(
+            "<Double-1>",
+            lambda event: self.on_load_selected_person()
+        )
+
     # ==================================================
     # TAB 3: LỊCH SỬ CHẤM CÔNG
     # ==================================================
@@ -418,6 +443,30 @@ class FaceAttendanceApp:
 
         except Exception as e:
             messagebox.showerror("Lỗi", f"Không thể tải danh sách người:\n{e}")
+
+    def get_selected_person(self):
+        selection = self.people_tree.selection()
+
+        if not selection:
+            messagebox.showwarning(
+                "Cảnh báo",
+                "Vui lòng chọn một người trong danh sách."
+            )
+            return None
+
+        values = self.people_tree.item(selection[0], "values")
+
+        if not values:
+            messagebox.showwarning(
+                "Cảnh báo",
+                "Không đọc được dữ liệu người được chọn."
+            )
+            return None
+
+        raw_name = values[0]
+        display_name = values[1]
+
+        return raw_name, display_name
 
     # ==================================================
     # DATABASE / TABLE FUNCTIONS
@@ -928,6 +977,7 @@ class FaceAttendanceApp:
         self.capture_raw_name = raw_name
         self.capture_display_name = display_name
         self.capture_current_frame = None
+        self.capture_saved_count = 0
 
         self.capture_window = tk.Toplevel(self.root)
         self.capture_window.title(f"Chụp ảnh khuôn mặt - {display_name}")
@@ -1180,12 +1230,16 @@ class FaceAttendanceApp:
             image_count = get_person_image_count(self.capture_raw_name)
             filename = os.path.basename(file_path)
 
+            self.capture_saved_count += 1
+            self.dataset_changed = True
+
             if self.capture_info_label is not None:
                 self.capture_info_label.config(
                     text=(
                         f"Raw name: {self.capture_raw_name} | "
                         f"Số ảnh hiện tại: {image_count} | "
-                        f"Đã lưu: {filename}"
+                        f"Đã lưu: {filename} | "
+                        f"Cần train lại model"
                     )
                 )
 
@@ -1204,6 +1258,17 @@ class FaceAttendanceApp:
             )
 
     def close_capture_window(self):
+        should_train = False
+
+        if self.capture_saved_count > 0:
+            should_train = messagebox.askyesno(
+                "Train lại model?",
+                f"Bạn vừa chụp {self.capture_saved_count} ảnh mới.\n\n"
+                f"Cần train lại model để ảnh mới có hiệu lực trong nhận diện.\n\n"
+                f"Bạn có muốn train lại model ngay không?",
+                parent=self.capture_window
+            )
+
         self.stop_capture_camera()
 
         if self.capture_window is not None and self.capture_window.winfo_exists():
@@ -1214,6 +1279,34 @@ class FaceAttendanceApp:
         self.capture_info_label = None
         self.capture_current_frame = None
         self.capture_current_image = None
+        self.capture_saved_count = 0
+
+        if should_train:
+            self.start_train_model()
+
+    def update_model_status(self):
+        info = get_model_info()
+
+        if not info["exists"]:
+            self.train_status_label.config(
+                text="Train status: Chưa có model. Vui lòng train model."
+            )
+            return
+
+        if info["error"]:
+            self.train_status_label.config(
+                text=f"Train status: Model lỗi - {info['error']}"
+            )
+            return
+
+        self.train_status_label.config(
+            text=(
+                f"Train status: Đã có model | "
+                f"Người: {info['people_count']} | "
+                f"Encodings: {info['total_encodings']} | "
+                f"Cập nhật: {info['updated_at']}"
+            )
+        )
 
     # ==================================================
     # TRAIN MODEL FUNCTIONS
@@ -1298,6 +1391,7 @@ class FaceAttendanceApp:
                     # Reload people map để nhận tên hiển thị mới nhất
                     self.people_map = load_people()
                     self.load_people_list()
+                    self.update_model_status()
 
                     messagebox.showinfo("Thành công", message)
 
@@ -1393,6 +1487,82 @@ class FaceAttendanceApp:
 
     def on_export_csv(self):
         self.export_history_to_csv()
+
+    def on_load_selected_person(self):
+        selected = self.get_selected_person()
+
+        if selected is None:
+            return
+
+        raw_name, display_name = selected
+
+        self.raw_name_entry.delete(0, tk.END)
+        self.raw_name_entry.insert(0, raw_name)
+
+        self.display_name_entry.delete(0, tk.END)
+        self.display_name_entry.insert(0, display_name)
+
+    def on_delete_selected_person(self):
+        selected = self.get_selected_person()
+
+        if selected is None:
+            return
+
+        raw_name, display_name = selected
+
+        confirm = messagebox.askyesno(
+            "Xác nhận xóa",
+            f"Bạn có chắc muốn xóa người này khỏi dataset?\n\n"
+            f"Raw name: {raw_name}\n"
+            f"Display name: {display_name}\n\n"
+            f"Thư mục ảnh sẽ được chuyển sang deleted_dataset/ để backup.\n"
+            f"Lịch sử chấm công trong attendance.db sẽ không bị xóa."
+        )
+
+        if not confirm:
+            return
+
+        try:
+            # Không nên xóa dataset khi camera/capture đang dùng webcam
+            if self.camera_running:
+                self.stop_camera()
+
+            if self.capture_running:
+                self.stop_capture_camera()
+
+            result = delete_person(raw_name, backup=True)
+
+            self.people_map = load_people()
+            self.load_people_list()
+
+            backup_path = result.get("backup_path")
+
+            message = (
+                f"Đã xóa người dùng khỏi dataset.\n\n"
+                f"Raw name: {result['raw_name']}\n"
+                f"Display name: {result['display_name']}\n"
+            )
+
+            if backup_path:
+                message += f"\nBackup tại:\n{backup_path}"
+
+            messagebox.showinfo("Thành công", message)
+
+            should_train = messagebox.askyesno(
+                "Train lại model?",
+                "Bạn nên train lại model sau khi xóa người.\n\n"
+                "Nếu không train lại, encodings.pickle cũ vẫn có thể còn dữ liệu của người vừa xóa.\n\n"
+                "Bạn có muốn train lại model ngay không?"
+            )
+
+            if should_train:
+                self.start_train_model()
+
+        except Exception as e:
+            messagebox.showerror(
+                "Lỗi",
+                f"Không thể xóa người dùng:\n{e}"
+            )
 
 
 def main():
