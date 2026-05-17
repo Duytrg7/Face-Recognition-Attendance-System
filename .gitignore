@@ -1,0 +1,36 @@
+# Dataset ảnh khuôn mặt
+dataset/
+dataset_backup*/
+*_dataset_backup*/
+
+# Backup files
+*_backup*.json
+people_backup*.json
+dataset_backup*/
+
+# Real people mapping
+people.json
+
+# Generated model
+encodings.pickle
+
+# Database runtime
+attendance.db
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# Temporary files
+*.save
+*.tmp
+
+# Corrupted git backup
+.git_corrupt_backup/
