@@ -138,3 +138,13 @@ def get_attendance_records(name_filter="", date_filter="", limit=None):
 
 def get_recent_attendance(limit=10):
     return get_attendance_records(limit=limit)
+
+def clear_attendance_records():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM attendance")
+    cursor.execute("DELETE FROM sqlite_sequence WHERE name='attendance'")
+
+    conn.commit()
+    conn.close()

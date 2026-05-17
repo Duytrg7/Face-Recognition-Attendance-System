@@ -16,7 +16,8 @@ from database import (
     init_db,
     get_attendance_records,
     get_recent_attendance,
-    insert_attendance
+    insert_attendance,
+    clear_attendance_records
 )
 
 from people_manager import (
@@ -390,6 +391,12 @@ class FaceAttendanceApp:
             text="Export CSV",
             command=self.on_export_csv
         ).pack(side="left")
+
+        ttk.Button(
+            filter_frame,
+            text="Xóa lịch sử",
+            command=self.on_clear_history
+        ).pack(side="left", padx=(8, 0))
 
         table_frame = ttk.LabelFrame(main_frame, text="Danh sách bản ghi", padding=10)
         table_frame.grid(row=2, column=0, sticky="nsew")
@@ -1562,6 +1569,43 @@ class FaceAttendanceApp:
             messagebox.showerror(
                 "Lỗi",
                 f"Không thể xóa người dùng:\n{e}"
+            )
+
+    def on_clear_history(self):
+        confirm = messagebox.askyesno(
+            "Xác nhận xóa lịch sử",
+            "Bạn có chắc muốn xóa toàn bộ lịch sử chấm công không?\n\n"
+            "Hành động này sẽ xóa toàn bộ dữ liệu trong bảng attendance "
+            "và reset ID về 1."
+        )
+
+        if not confirm:
+            return
+
+        confirm_again = messagebox.askyesno(
+            "Xác nhận lần nữa",
+            "Dữ liệu lịch sử sau khi xóa sẽ không thể khôi phục từ database.\n\n"
+            "Bạn vẫn muốn tiếp tục?"
+        )
+
+        if not confirm_again:
+            return
+
+        try:
+            clear_attendance_records()
+
+            self.load_history()
+            self.refresh_recent_attendance()
+
+            messagebox.showinfo(
+                "Thành công",
+                "Đã xóa toàn bộ lịch sử chấm công."
+            )
+
+        except Exception as e:
+            messagebox.showerror(
+                "Lỗi",
+                f"Không thể xóa lịch sử chấm công:\n{e}"
             )
 
 
