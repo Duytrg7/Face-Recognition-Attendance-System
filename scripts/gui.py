@@ -47,10 +47,6 @@ UI_FRAME_INTERVAL = 1 / UI_TARGET_FPS
 CONFIRM_SECONDS = 3
 COOLDOWN_SECONDS = 10
 
-NAME_MAP = {
-    "nguyen_van_a": "Nguyen Van A",
-}
-
 
 class FaceAttendanceApp:
     def __init__(self, root):
@@ -108,6 +104,22 @@ class FaceAttendanceApp:
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def setup_style(self):
+        self.colors = {
+            "bg": "#f4f6f8",
+            "panel": "#ffffff",
+            "primary": "#2563eb",
+            "primary_dark": "#1d4ed8",
+            "success": "#16a34a",
+            "warning": "#f59e0b",
+            "danger": "#dc2626",
+            "muted": "#e5e7eb",
+            "text": "#111827",
+            "subtext": "#4b5563",
+            "table_alt": "#f9fafb",
+        }
+
+        self.root.configure(bg=self.colors["bg"])
+
         style = ttk.Style()
 
         try:
@@ -115,13 +127,128 @@ class FaceAttendanceApp:
         except tk.TclError:
             pass
 
-        style.configure("TNotebook.Tab", padding=(16, 8), font=("Arial", 11))
-        style.configure("Title.TLabel", font=("Arial", 16, "bold"))
-        style.configure("Header.TLabel", font=("Arial", 12, "bold"))
-        style.configure("Status.TLabel", font=("Arial", 11))
-        style.configure("TButton", font=("Arial", 10), padding=6)
-        style.configure("Treeview.Heading", font=("Arial", 10, "bold"))
-        style.configure("Treeview", rowheight=26)
+        style.configure(
+            "TFrame",
+            background=self.colors["bg"]
+        )
+
+        style.configure(
+            "TLabelframe",
+            background=self.colors["bg"],
+            borderwidth=1,
+            relief="solid"
+        )
+
+        style.configure(
+            "TLabelframe.Label",
+            background=self.colors["bg"],
+            foreground=self.colors["text"],
+            font=("Arial", 11, "bold")
+        )
+
+        style.configure(
+            "TNotebook",
+            background=self.colors["bg"],
+            borderwidth=0
+        )
+
+        style.configure(
+            "TNotebook.Tab",
+            padding=(18, 10),
+            font=("Arial", 11, "bold")
+        )
+
+        style.map(
+            "TNotebook.Tab",
+            background=[("selected", self.colors["primary"])],
+            foreground=[("selected", "white")]
+        )
+
+        style.configure(
+            "Title.TLabel",
+            font=("Arial", 18, "bold"),
+            background=self.colors["bg"],
+            foreground=self.colors["text"]
+        )
+
+        style.configure(
+            "Header.TLabel",
+            font=("Arial", 12, "bold"),
+            background=self.colors["bg"],
+            foreground=self.colors["text"]
+        )
+
+        style.configure(
+            "Status.TLabel",
+            font=("Arial", 11),
+            background=self.colors["bg"],
+            foreground=self.colors["subtext"]
+        )
+
+        style.configure(
+            "TButton",
+            font=("Arial", 10, "bold"),
+            padding=7
+        )
+
+        style.configure(
+            "Primary.TButton",
+            font=("Arial", 10, "bold"),
+            padding=7,
+            background=self.colors["primary"],
+            foreground="white"
+        )
+
+        style.map(
+            "Primary.TButton",
+            background=[("active", self.colors["primary_dark"])]
+        )
+
+        style.configure(
+            "Danger.TButton",
+            font=("Arial", 10, "bold"),
+            padding=7,
+            background=self.colors["danger"],
+            foreground="white"
+        )
+
+        style.configure(
+            "Success.TButton",
+            font=("Arial", 10, "bold"),
+            padding=7,
+            background=self.colors["success"],
+            foreground="white"
+        )
+
+        style.configure(
+            "Treeview",
+            rowheight=28,
+            font=("Arial", 10),
+            background="white",
+            fieldbackground="white",
+            foreground=self.colors["text"]
+        )
+
+        style.configure(
+            "Treeview.Heading",
+            font=("Arial", 10, "bold"),
+            background=self.colors["muted"],
+            foreground=self.colors["text"]
+        )
+
+    def update_button_states(self):
+        if self.camera_running:
+            self.start_button.configure(state="disabled")
+            self.stop_button.configure(state="normal")
+        else:
+            self.start_button.configure(state="normal")
+            self.stop_button.configure(state="disabled")
+
+        if hasattr(self, "train_button"):
+            if self.train_running:
+                self.train_button.configure(state="disabled")
+            else:
+                self.train_button.configure(state="normal")
 
     def create_widgets(self):
         self.notebook = ttk.Notebook(self.root)
@@ -200,12 +327,17 @@ class FaceAttendanceApp:
         )
         self.fps_label.pack(anchor="w", pady=4)
 
-        self.status_label = ttk.Label(
+        self.status_label = tk.Label(
             status_frame,
             text="Status: Chưa khởi động camera",
-            style="Status.TLabel"
+            anchor="w",
+            padx=10,
+            pady=8,
+            bg=self.colors["muted"],
+            fg=self.colors["text"],
+            font=("Arial", 11, "bold")
         )
-        self.status_label.pack(anchor="w", pady=4)
+        self.status_label.pack(fill="x", pady=4)
 
         button_frame = ttk.LabelFrame(right_frame, text="Điều khiển", padding=10)
         button_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
@@ -213,6 +345,7 @@ class FaceAttendanceApp:
         self.start_button = ttk.Button(
             button_frame,
             text="Start Camera",
+            style="Success.TButton",
             command=self.on_start_camera
         )
         self.start_button.pack(side="left", padx=(0, 8))
@@ -220,9 +353,11 @@ class FaceAttendanceApp:
         self.stop_button = ttk.Button(
             button_frame,
             text="Stop Camera",
+            style="Danger.TButton",
             command=self.on_stop_camera
         )
         self.stop_button.pack(side="left")
+        self.stop_button.configure(state="disabled")
 
         recent_frame = ttk.LabelFrame(right_frame, text="Điểm danh gần nhất", padding=10)
         recent_frame.grid(row=2, column=0, sticky="nsew")
@@ -291,11 +426,13 @@ class FaceAttendanceApp:
             command=self.on_capture_images
         ).pack(fill="x", pady=4)
 
-        ttk.Button(
+        self.train_button = ttk.Button(
             form_frame,
             text="Train lại model",
+            style="Primary.TButton",
             command=self.on_train_model
-        ).pack(fill="x", pady=4)
+        )
+        self.train_button.pack(fill="x", pady=4)
         
         self.train_status_label = ttk.Label(
             form_frame,
@@ -642,7 +779,8 @@ class FaceAttendanceApp:
             return
 
         self.camera_running = True
-        self.status_label.config(text="Status: Đang khởi động camera...")
+        self.set_system_status("Đang khởi động camera...", "warning")
+        self.update_button_states()
 
         self.camera_thread = threading.Thread(
             target=self.camera_worker,
@@ -653,12 +791,13 @@ class FaceAttendanceApp:
     def stop_camera(self):
         if not self.camera_running:
             self.clear_frame_queue()
-            self.status_label.config(text="Status: Camera đã dừng")
             self.fps_label.config(text="FPS: --")
+            self.set_system_status("Camera đã dừng", "info")
+            self.update_button_states()
             return
 
         self.camera_running = False
-        self.status_label.config(text="Status: Đang dừng camera...")
+        self.set_system_status("Đang dừng camera...", "warning")
 
         # Đợi camera thread thoát nhẹ nhàng
         if self.camera_thread is not None and self.camera_thread.is_alive():
@@ -670,7 +809,8 @@ class FaceAttendanceApp:
         self.camera_capture = None
 
         self.fps_label.config(text="FPS: --")
-        self.status_label.config(text="Status: Đã dừng camera")
+        self.set_system_status("Đã dừng camera", "info")
+        self.update_button_states()
 
         self.camera_label.config(
             image="",
@@ -898,7 +1038,16 @@ class FaceAttendanceApp:
 
                     self.update_camera_frame(frame)
                     self.fps_label.config(text=f"FPS: {fps:.1f}")
-                    self.status_label.config(text=f"Status: {status}")
+                    status_lower = status.lower()
+
+                    if item.get("attendance_saved", False):
+                        level = "success"
+                    elif "cooldown" in status_lower or "xác nhận" in status_lower or "giữ khuôn mặt" in status_lower:
+                        level = "warning"
+                    else:
+                        level = "info"
+
+                    self.set_system_status(status, level)
 
                     if item.get("attendance_saved", False):
                         self.refresh_recent_attendance()
@@ -908,11 +1057,12 @@ class FaceAttendanceApp:
                     if not self.camera_running:
                         continue
 
-                    self.status_label.config(text=f"Status: {item['message']}")
+                    self.set_system_status(item["message"], "info")
 
                 elif item["type"] == "error":
-                    self.status_label.config(text=f"Status: Lỗi - {item['message']}")
                     self.camera_running = False
+                    self.update_button_states()
+                    self.set_system_status(f"Lỗi - {item['message']}", "error")
 
                     if not self.app_closing:
                         messagebox.showerror("Lỗi camera", item["message"])
@@ -971,6 +1121,30 @@ class FaceAttendanceApp:
             self.stop_camera()
 
         self.root.destroy()
+
+    def set_system_status(self, message, level="info"):
+        color_map = {
+            "info": self.colors["muted"],
+            "success": self.colors["success"],
+            "warning": self.colors["warning"],
+            "error": self.colors["danger"],
+        }
+
+        fg_map = {
+            "info": self.colors["text"],
+            "success": "white",
+            "warning": "black",
+            "error": "white",
+        }
+
+        bg = color_map.get(level, self.colors["muted"])
+        fg = fg_map.get(level, self.colors["text"])
+
+        self.status_label.config(
+            text=f"Status: {message}",
+            bg=bg,
+            fg=fg
+        )
 
     # ==================================================
     # CAPTURE FACE IMAGE FUNCTIONS
@@ -1333,8 +1507,9 @@ class FaceAttendanceApp:
             self.stop_capture_camera()
 
         self.train_running = True
+        self.update_button_states()
         self.train_status_label.config(text="Train status: Đang train model...")
-        self.status_label.config(text="Status: Đang train model...")
+        self.set_system_status("Đang train model...", "warning")
 
         self.train_thread = threading.Thread(
             target=self.train_model_worker,
@@ -1374,6 +1549,7 @@ class FaceAttendanceApp:
 
                 elif item["type"] == "success":
                     self.train_running = False
+                    self.update_button_states()
 
                     result = item["result"]
 
@@ -1393,7 +1569,7 @@ class FaceAttendanceApp:
                         )
                     )
 
-                    self.status_label.config(text="Status: Train model hoàn tất")
+                    self.set_system_status("Train model hoàn tất", "success")
 
                     # Reload people map để nhận tên hiển thị mới nhất
                     self.people_map = load_people()
@@ -1404,11 +1580,12 @@ class FaceAttendanceApp:
 
                 elif item["type"] == "error":
                     self.train_running = False
+                    self.update_button_states()
 
                     self.train_status_label.config(
                         text=f"Train status: Lỗi - {item['message']}"
                     )
-                    self.status_label.config(text="Status: Train model lỗi")
+                    self.set_system_status("Train model lỗi", "error")
 
                     messagebox.showerror(
                         "Lỗi train model",
