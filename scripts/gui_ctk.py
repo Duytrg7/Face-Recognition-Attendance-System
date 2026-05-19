@@ -674,62 +674,163 @@ class FaceAttendanceApp:
     # ==================================================
 
     def create_history_tab(self):
-        main_frame = ttk.Frame(self.tab_history, padding=12)
-        main_frame.pack(fill="both", expand=True)
+        main_frame = ctk.CTkFrame(
+            self.tab_history,
+            fg_color=self.colors["bg"],
+            corner_radius=0
+        )
+        main_frame.pack(fill="both", expand=True, padx=8, pady=8)
 
         main_frame.rowconfigure(2, weight=1)
         main_frame.columnconfigure(0, weight=1)
 
-        title = ttk.Label(
+        title = ctk.CTkLabel(
             main_frame,
             text="Lịch sử chấm công",
-            style="Title.TLabel"
+            font=("Arial", 22, "bold"),
+            text_color=self.colors["text"]
         )
         title.grid(row=0, column=0, sticky="w", pady=(0, 12))
 
-        filter_frame = ttk.LabelFrame(main_frame, text="Bộ lọc", padding=10)
-        filter_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+        # ==================================================
+        # Card bộ lọc
+        # ==================================================
+        filter_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16,
+            border_width=0
+        )
+        filter_frame.grid(row=1, column=0, sticky="ew", pady=(0, 12))
+        filter_frame.columnconfigure(0, weight=1)
 
-        ttk.Label(filter_frame, text="Tên (có thể nhập không dấu):").pack(side="left", padx=(0, 4))
-        self.filter_name_entry = ttk.Entry(filter_frame, width=25)
-        self.filter_name_entry.pack(side="left", padx=(0, 12))
-
-        ttk.Label(filter_frame, text="Ngày YYYY-MM-DD:").pack(side="left", padx=(0, 4))
-        self.filter_date_entry = ttk.Entry(filter_frame, width=18)
-        self.filter_date_entry.pack(side="left", padx=(0, 12))
-
-        ttk.Button(
+        filter_title = ctk.CTkLabel(
             filter_frame,
+            text="Bộ lọc",
+            font=("Arial", 15, "bold"),
+            text_color=self.colors["text"]
+        )
+        filter_title.pack(anchor="w", padx=14, pady=(14, 6))
+
+        filter_row = ctk.CTkFrame(
+            filter_frame,
+            fg_color="transparent"
+        )
+        filter_row.pack(fill="x", padx=14, pady=(4, 14))
+
+        ctk.CTkLabel(
+            filter_row,
+            text="Tên:",
+            font=("Arial", 13, "bold"),
+            text_color=self.colors["text"]
+        ).pack(side="left", padx=(0, 6))
+
+        self.filter_name_entry = ctk.CTkEntry(
+            filter_row,
+            width=210,
+            height=34,
+            corner_radius=8,
+            placeholder_text="Nhập tên hoặc không dấu"
+        )
+        self.filter_name_entry.pack(side="left", padx=(0, 14))
+
+        ctk.CTkLabel(
+            filter_row,
+            text="Ngày:",
+            font=("Arial", 13, "bold"),
+            text_color=self.colors["text"]
+        ).pack(side="left", padx=(0, 6))
+
+        self.filter_date_entry = ctk.CTkEntry(
+            filter_row,
+            width=160,
+            height=34,
+            corner_radius=8,
+            placeholder_text="YYYY-MM-DD"
+        )
+        self.filter_date_entry.pack(side="left", padx=(0, 14))
+
+        self.filter_button = ctk.CTkButton(
+            filter_row,
             text="Lọc",
+            width=90,
+            height=34,
+            corner_radius=9,
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["primary_dark"],
             command=self.on_filter_history
-        ).pack(side="left", padx=(0, 8))
+        )
+        self.filter_button.pack(side="left", padx=(0, 8))
 
-        ttk.Button(
-            filter_frame,
+        self.refresh_button = ctk.CTkButton(
+            filter_row,
             text="Refresh",
+            width=100,
+            height=34,
+            corner_radius=9,
+            fg_color="#64748b",
+            hover_color="#475569",
             command=self.on_refresh_history
-        ).pack(side="left", padx=(0, 8))
+        )
+        self.refresh_button.pack(side="left", padx=(0, 8))
 
-        ttk.Button(
-            filter_frame,
+        self.export_button = ctk.CTkButton(
+            filter_row,
             text="Export CSV",
+            width=115,
+            height=34,
+            corner_radius=9,
+            fg_color=self.colors["success"],
+            hover_color="#15803d",
             command=self.on_export_csv
-        ).pack(side="left")
+        )
+        self.export_button.pack(side="left", padx=(0, 8))
 
-        ttk.Button(
-            filter_frame,
+        self.clear_history_button = ctk.CTkButton(
+            filter_row,
             text="Xóa lịch sử",
+            width=115,
+            height=34,
+            corner_radius=9,
+            fg_color=self.colors["danger"],
+            hover_color="#b91c1c",
             command=self.on_clear_history
-        ).pack(side="left", padx=(8, 0))
+        )
+        self.clear_history_button.pack(side="left")
 
-        table_frame = ttk.LabelFrame(main_frame, text="Danh sách bản ghi", padding=10)
+        # ==================================================
+        # Card bảng lịch sử
+        # ==================================================
+        table_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16,
+            border_width=0
+        )
         table_frame.grid(row=2, column=0, sticky="nsew")
-        table_frame.rowconfigure(0, weight=1)
+        table_frame.rowconfigure(1, weight=1)
         table_frame.columnconfigure(0, weight=1)
+
+        table_title = ctk.CTkLabel(
+            table_frame,
+            text="Danh sách bản ghi",
+            font=("Arial", 15, "bold"),
+            text_color=self.colors["text"]
+        )
+        table_title.grid(row=0, column=0, sticky="w", padx=14, pady=(14, 8))
+
+        table_container = ctk.CTkFrame(
+            table_frame,
+            fg_color="transparent",
+            corner_radius=0
+        )
+        table_container.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 14))
+        table_container.rowconfigure(0, weight=1)
+        table_container.columnconfigure(0, weight=1)
 
         columns = ("id", "name", "timestamp", "type")
         self.history_tree = ttk.Treeview(
-            table_frame,
+            table_container,
             columns=columns,
             show="headings"
         )
@@ -740,12 +841,12 @@ class FaceAttendanceApp:
         self.history_tree.heading("type", text="Loại")
 
         self.history_tree.column("id", width=60, anchor="center")
-        self.history_tree.column("name", width=220)
-        self.history_tree.column("timestamp", width=200)
+        self.history_tree.column("name", width=260)
+        self.history_tree.column("timestamp", width=220, anchor="center")
         self.history_tree.column("type", width=80, anchor="center")
 
         scrollbar = ttk.Scrollbar(
-            table_frame,
+            table_container,
             orient="vertical",
             command=self.history_tree.yview
         )
