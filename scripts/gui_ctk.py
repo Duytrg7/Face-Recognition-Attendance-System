@@ -38,6 +38,8 @@ ENCODINGS_PATH = os.path.join(BASE_DIR, "encodings.pickle")
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 
+CAMERA_PATH = "/dev/video0"
+
 CV_SCALER = 4
 PROCESS_EVERY_N_FRAMES = 8
 TOLERANCE = 0.50
@@ -227,14 +229,18 @@ class FaceAttendanceApp:
             font=("Arial", 10),
             background="white",
             fieldbackground="white",
-            foreground=self.colors["text"]
+            foreground=self.colors["text"],
+            borderwidth=0,
+            relief="flat"
         )
 
         style.configure(
             "Treeview.Heading",
             font=("Arial", 10, "bold"),
-            background=self.colors["muted"],
-            foreground=self.colors["text"]
+            background="#f1f5f9",
+            foreground=self.colors["text"],
+            borderwidth=0,
+            relief="flat"
         )
 
     def update_button_states(self):
@@ -307,7 +313,6 @@ class FaceAttendanceApp:
             text_color=self.colors["text"]
         )
         camera_title.pack(anchor="w", padx=12, pady=(10, 4))
-        camera_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
         camera_frame.rowconfigure(0, weight=1)
         camera_frame.columnconfigure(0, weight=1)
 
@@ -320,8 +325,6 @@ class FaceAttendanceApp:
         self.camera_container.pack(fill="both", expand=True, padx=12, pady=(0, 12))
         self.camera_container.pack_propagate(False)
 
-        # Không cho frame tự đổi kích thước theo ảnh bên trong
-        self.camera_container.grid_propagate(False)
 
         self.camera_label = tk.Label(
             self.camera_container,
@@ -333,20 +336,38 @@ class FaceAttendanceApp:
         self.camera_label.place(relx=0.5, rely=0.5, anchor="center")
 
         # Khung bên phải
-        right_frame = ttk.Frame(main_frame)
+        right_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent",
+            corner_radius=0
+        )
         right_frame.grid(row=1, column=1, sticky="nsew")
         right_frame.rowconfigure(2, weight=1)
         right_frame.columnconfigure(0, weight=1)
 
-        status_frame = ttk.LabelFrame(right_frame, text="Trạng thái hệ thống", padding=10)
-        status_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        status_frame = ctk.CTkFrame(
+            right_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=14,
+            border_width=0
+        )
+        status_frame.grid(row=0, column=0, sticky="ew", pady=(0, 12))
 
-        self.fps_label = ttk.Label(
+        ctk.CTkLabel(
+            status_frame,
+            text="Trạng thái hệ thống",
+            font=("Arial", 14, "bold"),
+            text_color=self.colors["text"]
+        ).pack(anchor="w", padx=12, pady=(10, 4))
+
+        self.fps_label = ctk.CTkLabel(
             status_frame,
             text="FPS: --",
-            style="Status.TLabel"
+            font=("Arial", 13),
+            text_color=self.colors["subtext"],
+            anchor="w"
         )
-        self.fps_label.pack(anchor="w", pady=4)
+        self.fps_label.pack(fill="x", padx=12, pady=(4, 2))
 
         self.status_label = ctk.CTkLabel(
             status_frame,
@@ -360,12 +381,32 @@ class FaceAttendanceApp:
         )
         self.status_label.pack(fill="x", padx=8, pady=8)
 
-        button_frame = ttk.LabelFrame(right_frame, text="Điều khiển", padding=10)
-        button_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+        button_frame = ctk.CTkFrame(
+            right_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=14,
+            border_width=0
+        )
+        button_frame.grid(row=1, column=0, sticky="ew", pady=(0, 12))
+
+        ctk.CTkLabel(
+            button_frame,
+            text="Điều khiển",
+            font=("Arial", 14, "bold"),
+            text_color=self.colors["text"]
+        ).pack(anchor="w", padx=12, pady=(10, 4))
+
+        button_row = ctk.CTkFrame(
+            button_frame,
+            fg_color="transparent"
+        )
+        button_row.pack(fill="x", padx=12, pady=(4, 12))
 
         self.start_button = ctk.CTkButton(
-            button_frame,
+            button_row,
             text="Start Camera",
+            width=130,
+            height=34,
             fg_color=self.colors["success"],
             hover_color="#15803d",
             command=self.on_start_camera
@@ -373,8 +414,10 @@ class FaceAttendanceApp:
         self.start_button.pack(side="left", padx=(0, 8))
 
         self.stop_button = ctk.CTkButton(
-            button_frame,
+            button_row,
             text="Stop Camera",
+            width=130,
+            height=34,
             fg_color=self.colors["danger"],
             hover_color="#b91c1c",
             command=self.on_stop_camera
@@ -382,8 +425,20 @@ class FaceAttendanceApp:
         self.stop_button.pack(side="left")
         self.stop_button.configure(state="disabled")
 
-        recent_frame = ttk.LabelFrame(right_frame, text="Điểm danh gần nhất", padding=10)
+        recent_frame = ctk.CTkFrame(
+            right_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=14,
+            border_width=0
+        )
         recent_frame.grid(row=2, column=0, sticky="nsew")
+
+        ctk.CTkLabel(
+            recent_frame,
+            text="Điểm danh gần nhất",
+            font=("Arial", 14, "bold"),
+            text_color=self.colors["text"]
+        ).pack(anchor="w", padx=12, pady=(10, 4))
 
         columns = ("id", "name", "time", "type")
         self.recent_tree = ttk.Treeview(
@@ -403,7 +458,7 @@ class FaceAttendanceApp:
         self.recent_tree.column("time", width=160)
         self.recent_tree.column("type", width=70, anchor="center")
 
-        self.recent_tree.pack(fill="both", expand=True)
+        self.recent_tree.pack(fill="both", expand=True, padx=12, pady=(4, 12))
 
     # ==================================================
     # TAB 2: QUẢN LÝ KHUÔN MẶT
@@ -822,7 +877,7 @@ class FaceAttendanceApp:
     def stop_camera(self):
         if not self.camera_running:
             self.clear_frame_queue()
-            self.fps_label.config(text="FPS: --")
+            self.fps_label.configure(text="FPS: --")
             self.set_system_status("Camera đã dừng", "info")
             self.update_button_states()
             return
@@ -839,7 +894,7 @@ class FaceAttendanceApp:
         self.camera_thread = None
         self.camera_capture = None
 
-        self.fps_label.config(text="FPS: --")
+        self.fps_label.configure(text="FPS: --")
         self.set_system_status("Đã dừng camera", "info")
         self.update_button_states()
 
@@ -877,18 +932,19 @@ class FaceAttendanceApp:
                 self.camera_running = False
                 return
 
-            cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+            cap = cv2.VideoCapture(CAMERA_PATH, cv2.CAP_V4L2)
             self.camera_capture = cap
 
             cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
             cap.set(cv2.CAP_PROP_FPS, 30)
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
             if not cap.isOpened():
                 self.frame_queue.put({
                     "type": "error",
-                    "message": "Không mở được webcam"
+                    "message": f"Không mở được webcam tại {CAMERA_PATH}"
                 })
                 self.camera_running = False
                 return
@@ -1068,7 +1124,7 @@ class FaceAttendanceApp:
                     status = item.get("status", "Camera đang chạy")
 
                     self.update_camera_frame(frame)
-                    self.fps_label.config(text=f"FPS: {fps:.1f}")
+                    self.fps_label.configure(text=f"FPS: {fps:.1f}")
                     status_lower = status.lower()
 
                     if item.get("attendance_saved", False):
@@ -1285,12 +1341,13 @@ class FaceAttendanceApp:
         cap = None
 
         try:
-            cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+            cap = cv2.VideoCapture(CAMERA_PATH, cv2.CAP_V4L2)
 
             cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             cap.set(cv2.CAP_PROP_FPS, 30)
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
             if not cap.isOpened():
                 self.capture_queue.put({
