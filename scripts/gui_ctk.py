@@ -243,6 +243,32 @@ class FaceAttendanceApp:
             relief="flat"
         )
 
+        style.configure(
+            "Clean.Treeview",
+            rowheight=30,
+            font=("Arial", 10),
+            background="white",
+            fieldbackground="white",
+            foreground=self.colors["text"],
+            borderwidth=0,
+            relief="flat"
+        )
+
+        style.configure(
+            "Clean.Treeview.Heading",
+            font=("Arial", 10, "bold"),
+            background="#f1f5f9",
+            foreground=self.colors["text"],
+            borderwidth=0,
+            relief="flat"
+        )
+
+        # Bỏ viền ngoài mặc định của Treeview
+        style.layout(
+            "Clean.Treeview",
+            [("Treeview.treearea", {"sticky": "nswe"})]
+        )
+
     def update_button_states(self):
         if self.camera_running:
             self.start_button.configure(state="disabled")
@@ -626,13 +652,55 @@ class FaceAttendanceApp:
 
         self.people_tree.grid(row=0, column=0, sticky="nsew")
 
-        people_scrollbar = ttk.Scrollbar(
+        people_scroll_container = ctk.CTkFrame(
             table_container,
-            orient="vertical",
+            fg_color="transparent",
+            width=18
+        )
+        people_scroll_container.grid(row=0, column=1, sticky="ns", padx=(8, 0))
+        people_scroll_container.rowconfigure(1, weight=1)
+
+        people_scroll_up_button = ctk.CTkButton(
+            people_scroll_container,
+            text="▲",
+            width=16,
+            height=18,
+            corner_radius=6,
+            fg_color="transparent",
+            hover_color="#e5e7eb",
+            text_color="#94a3b8",
+            font=("Arial", 9, "bold"),
+            command=lambda: self.people_tree.yview_scroll(-3, "units")
+        )
+        people_scroll_up_button.grid(row=0, column=0, pady=(0, 4))
+
+        people_scrollbar = ctk.CTkScrollbar(
+            people_scroll_container,
+            orientation="vertical",
+            width=12,
+            corner_radius=8,
+            fg_color="transparent",
+            button_color="#cbd5e1",
+            button_hover_color="#94a3b8",
             command=self.people_tree.yview
         )
+        people_scrollbar.grid(row=1, column=0, sticky="ns")
+
+        people_scroll_down_button = ctk.CTkButton(
+            people_scroll_container,
+            text="▼",
+            width=16,
+            height=18,
+            corner_radius=6,
+            fg_color="transparent",
+            hover_color="#e5e7eb",
+            text_color="#94a3b8",
+            font=("Arial", 9, "bold"),
+            command=lambda: self.people_tree.yview_scroll(3, "units")
+        )
+        people_scroll_down_button.grid(row=2, column=0, pady=(4, 0))
+
         self.people_tree.configure(yscrollcommand=people_scrollbar.set)
-        people_scrollbar.grid(row=0, column=1, sticky="ns")
 
         people_button_frame = ctk.CTkFrame(
             list_frame,
@@ -832,7 +900,8 @@ class FaceAttendanceApp:
         self.history_tree = ttk.Treeview(
             table_container,
             columns=columns,
-            show="headings"
+            show="headings",
+            style="Clean.Treeview"
         )
 
         self.history_tree.heading("id", text="ID")
@@ -845,15 +914,57 @@ class FaceAttendanceApp:
         self.history_tree.column("timestamp", width=220, anchor="center")
         self.history_tree.column("type", width=80, anchor="center")
 
-        scrollbar = ttk.Scrollbar(
+        scroll_container = ctk.CTkFrame(
             table_container,
-            orient="vertical",
+            fg_color="transparent",
+            width=18
+        )
+        scroll_container.grid(row=0, column=1, sticky="ns", padx=(8, 0))
+        scroll_container.rowconfigure(1, weight=1)
+
+        scroll_up_button = ctk.CTkButton(
+            scroll_container,
+            text="▲",
+            width=16,
+            height=18,
+            corner_radius=6,
+            fg_color="transparent",
+            hover_color="#e5e7eb",
+            text_color="#94a3b8",
+            font=("Arial", 9, "bold"),
+            command=lambda: self.history_tree.yview_scroll(-3, "units")
+        )
+        scroll_up_button.grid(row=0, column=0, pady=(0, 4))
+
+        history_scrollbar = ctk.CTkScrollbar(
+            scroll_container,
+            orientation="vertical",
+            width=12,
+            corner_radius=8,
+            fg_color="transparent",
+            button_color="#cbd5e1",
+            button_hover_color="#94a3b8",
             command=self.history_tree.yview
         )
-        self.history_tree.configure(yscrollcommand=scrollbar.set)
+        history_scrollbar.grid(row=1, column=0, sticky="ns")
+
+        scroll_down_button = ctk.CTkButton(
+            scroll_container,
+            text="▼",
+            width=16,
+            height=18,
+            corner_radius=6,
+            fg_color="transparent",
+            hover_color="#e5e7eb",
+            text_color="#94a3b8",
+            font=("Arial", 9, "bold"),
+            command=lambda: self.history_tree.yview_scroll(3, "units")
+        )
+        scroll_down_button.grid(row=2, column=0, pady=(4, 0))
+
+        self.history_tree.configure(yscrollcommand=history_scrollbar.set)
 
         self.history_tree.grid(row=0, column=0, sticky="nsew")
-        scrollbar.grid(row=0, column=1, sticky="ns")
 
     def load_people_list(self):
         try:
