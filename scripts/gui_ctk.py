@@ -223,7 +223,7 @@ class FaceAttendanceApp:
 
         style.configure(
             "Treeview",
-            rowheight=28,
+            rowheight=30,
             font=("Arial", 10),
             background="white",
             fieldbackground="white",
@@ -252,16 +252,17 @@ class FaceAttendanceApp:
                 self.train_button.configure(state="normal")
 
     def create_widgets(self):
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill="both", expand=True)
+        self.notebook = ctk.CTkTabview(
+            self.root,
+            fg_color=self.colors["bg"],
+            segmented_button_selected_color=self.colors["primary"],
+            segmented_button_selected_hover_color=self.colors["primary_dark"],
+        )
+        self.notebook.pack(fill="both", expand=True, padx=12, pady=12)
 
-        self.tab_attendance = ttk.Frame(self.notebook)
-        self.tab_faces = ttk.Frame(self.notebook)
-        self.tab_history = ttk.Frame(self.notebook)
-
-        self.notebook.add(self.tab_attendance, text="Điểm danh")
-        self.notebook.add(self.tab_faces, text="Quản lý khuôn mặt")
-        self.notebook.add(self.tab_history, text="Lịch sử chấm công")
+        self.tab_attendance = self.notebook.add("Điểm danh")
+        self.tab_faces = self.notebook.add("Quản lý khuôn mặt")
+        self.tab_history = self.notebook.add("Lịch sử chấm công")
 
         self.create_attendance_tab()
         self.create_faces_tab()
@@ -272,22 +273,40 @@ class FaceAttendanceApp:
     # ==================================================
 
     def create_attendance_tab(self):
-        main_frame = ttk.Frame(self.tab_attendance, padding=12)
-        main_frame.pack(fill="both", expand=True)
+        main_frame = ctk.CTkFrame(
+            self.tab_attendance,
+            fg_color=self.colors["bg"],
+            corner_radius=0
+        )
+        main_frame.pack(fill="both", expand=True, padx=8, pady=8)
 
         main_frame.columnconfigure(0, weight=3)
         main_frame.columnconfigure(1, weight=2)
         main_frame.rowconfigure(1, weight=1)
 
-        title = ttk.Label(
+        title = ctk.CTkLabel(
             main_frame,
             text="Màn hình điểm danh",
-            style="Title.TLabel"
+            font=("Arial", 22, "bold"),
+            text_color=self.colors["text"]
         )
         title.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 12))
 
         # Khung camera
-        camera_frame = ttk.LabelFrame(main_frame, text="Camera", padding=10)
+        camera_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16
+        )
+        camera_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        camera_title = ctk.CTkLabel(
+            camera_frame,
+            text="Camera",
+            font=("Arial", 15, "bold"),
+            text_color=self.colors["text"]
+        )
+        camera_title.pack(anchor="w", padx=12, pady=(10, 4))
         camera_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
         camera_frame.rowconfigure(0, weight=1)
         camera_frame.columnconfigure(0, weight=1)
@@ -298,7 +317,8 @@ class FaceAttendanceApp:
             width=720,
             height=480
         )
-        self.camera_container.grid(row=0, column=0, sticky="nsew")
+        self.camera_container.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+        self.camera_container.pack_propagate(False)
 
         # Không cho frame tự đổi kích thước theo ảnh bên trong
         self.camera_container.grid_propagate(False)
@@ -328,33 +348,35 @@ class FaceAttendanceApp:
         )
         self.fps_label.pack(anchor="w", pady=4)
 
-        self.status_label = tk.Label(
+        self.status_label = ctk.CTkLabel(
             status_frame,
             text="Status: Chưa khởi động camera",
             anchor="w",
-            padx=10,
-            pady=8,
-            bg=self.colors["muted"],
-            fg=self.colors["text"],
-            font=("Arial", 11, "bold")
+            height=42,
+            corner_radius=10,
+            fg_color=self.colors["muted"],
+            text_color=self.colors["text"],
+            font=("Arial", 13, "bold")
         )
-        self.status_label.pack(fill="x", pady=4)
+        self.status_label.pack(fill="x", padx=8, pady=8)
 
         button_frame = ttk.LabelFrame(right_frame, text="Điều khiển", padding=10)
         button_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
 
-        self.start_button = ttk.Button(
+        self.start_button = ctk.CTkButton(
             button_frame,
             text="Start Camera",
-            style="Success.TButton",
+            fg_color=self.colors["success"],
+            hover_color="#15803d",
             command=self.on_start_camera
         )
         self.start_button.pack(side="left", padx=(0, 8))
 
-        self.stop_button = ttk.Button(
+        self.stop_button = ctk.CTkButton(
             button_frame,
             text="Stop Camera",
-            style="Danger.TButton",
+            fg_color=self.colors["danger"],
+            hover_color="#b91c1c",
             command=self.on_stop_camera
         )
         self.stop_button.pack(side="left")
@@ -406,12 +428,20 @@ class FaceAttendanceApp:
         form_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
 
         ttk.Label(form_frame, text="Tên thư mục / mã người dùng:").pack(anchor="w")
-        self.raw_name_entry = ttk.Entry(form_frame)
+        self.raw_name_entry = ctk.CTkEntry(
+            form_frame,
+            height=36,
+            placeholder_text="Ví dụ: nguyen_van_a"
+        )
         self.raw_name_entry.pack(fill="x", pady=(4, 12))
         self.raw_name_entry.insert(0, "nguyen_van_a")
 
         ttk.Label(form_frame, text="Tên hiển thị:").pack(anchor="w")
-        self.display_name_entry = ttk.Entry(form_frame)
+        self.display_name_entry = ctk.CTkEntry(
+            form_frame,
+            height=36,
+            placeholder_text="Ví dụ: Nguyen Van A"
+        )
         self.display_name_entry.pack(fill="x", pady=(4, 12))
         self.display_name_entry.insert(0, "Nguyen Van A")
 
@@ -1138,13 +1168,10 @@ class FaceAttendanceApp:
             "error": "white",
         }
 
-        bg = color_map.get(level, self.colors["muted"])
-        fg = fg_map.get(level, self.colors["text"])
-
-        self.status_label.config(
+        self.status_label.configure(
             text=f"Status: {message}",
-            bg=bg,
-            fg=fg
+            fg_color=color_map.get(level, self.colors["muted"]),
+            text_color=fg_map.get(level, self.colors["text"])
         )
 
     # ==================================================
