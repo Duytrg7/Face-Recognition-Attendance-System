@@ -465,75 +465,153 @@ class FaceAttendanceApp:
     # ==================================================
 
     def create_faces_tab(self):
-        main_frame = ttk.Frame(self.tab_faces, padding=12)
-        main_frame.pack(fill="both", expand=True)
+        main_frame = ctk.CTkFrame(
+            self.tab_faces,
+            fg_color=self.colors["bg"],
+            corner_radius=0
+        )
+        main_frame.pack(fill="both", expand=True, padx=8, pady=8)
 
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=2)
         main_frame.rowconfigure(1, weight=1)
 
-        title = ttk.Label(
+        title = ctk.CTkLabel(
             main_frame,
             text="Quản lý khuôn mặt",
-            style="Title.TLabel"
+            font=("Arial", 22, "bold"),
+            text_color=self.colors["text"]
         )
         title.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 12))
 
-        form_frame = ttk.LabelFrame(main_frame, text="Thêm người mới", padding=12)
+        # ==================================================
+        # Card bên trái: Thêm người mới
+        # ==================================================
+        form_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16,
+            border_width=0
+        )
         form_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
 
-        ttk.Label(form_frame, text="Tên thư mục / mã người dùng:").pack(anchor="w")
+        form_title = ctk.CTkLabel(
+            form_frame,
+            text="Thêm người mới",
+            font=("Arial", 15, "bold"),
+            text_color=self.colors["text"]
+        )
+        form_title.pack(anchor="w", padx=14, pady=(14, 8))
+
+        ctk.CTkLabel(
+            form_frame,
+            text="Tên thư mục / mã người dùng:",
+            font=("Arial", 13, "bold"),
+            text_color=self.colors["text"]
+        ).pack(anchor="w", padx=14, pady=(4, 4))
+
         self.raw_name_entry = ctk.CTkEntry(
             form_frame,
-            height=36,
+            height=38,
+            corner_radius=8,
             placeholder_text="Ví dụ: nguyen_van_a"
         )
-        self.raw_name_entry.pack(fill="x", pady=(4, 12))
+        self.raw_name_entry.pack(fill="x", padx=14, pady=(0, 12))
         self.raw_name_entry.insert(0, "nguyen_van_a")
 
-        ttk.Label(form_frame, text="Tên hiển thị:").pack(anchor="w")
+        ctk.CTkLabel(
+            form_frame,
+            text="Tên hiển thị:",
+            font=("Arial", 13, "bold"),
+            text_color=self.colors["text"]
+        ).pack(anchor="w", padx=14, pady=(4, 4))
+
         self.display_name_entry = ctk.CTkEntry(
             form_frame,
-            height=36,
+            height=38,
+            corner_radius=8,
             placeholder_text="Ví dụ: Nguyen Van A"
         )
-        self.display_name_entry.pack(fill="x", pady=(4, 12))
+        self.display_name_entry.pack(fill="x", padx=14, pady=(0, 14))
         self.display_name_entry.insert(0, "Nguyen Van A")
 
-        ttk.Button(
+        self.save_person_button = ctk.CTkButton(
             form_frame,
             text="Lưu người / Cập nhật tên",
+            height=38,
+            corner_radius=9,
+            fg_color="#64748b",
+            hover_color="#475569",
             command=self.on_save_person
-        ).pack(fill="x", pady=4)
+        )
+        self.save_person_button.pack(fill="x", padx=14, pady=(4, 8))
 
-        ttk.Button(
+        self.capture_button = ctk.CTkButton(
             form_frame,
             text="Chụp ảnh khuôn mặt",
+            height=38,
+            corner_radius=9,
+            fg_color="#64748b",
+            hover_color="#475569",
             command=self.on_capture_images
-        ).pack(fill="x", pady=4)
+        )
+        self.capture_button.pack(fill="x", padx=14, pady=(0, 8))
 
-        self.train_button = ttk.Button(
+        self.train_button = ctk.CTkButton(
             form_frame,
             text="Train lại model",
-            style="Primary.TButton",
+            height=38,
+            corner_radius=9,
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["primary_dark"],
             command=self.on_train_model
         )
-        self.train_button.pack(fill="x", pady=4)
-        
-        self.train_status_label = ttk.Label(
+        self.train_button.pack(fill="x", padx=14, pady=(0, 12))
+
+        self.train_status_label = ctk.CTkLabel(
             form_frame,
             text="Train status: Chưa train",
-            style="Status.TLabel",
+            font=("Arial", 12),
+            text_color=self.colors["subtext"],
+            anchor="w",
+            justify="left",
             wraplength=300
         )
-        self.train_status_label.pack(fill="x", pady=(12, 4))
+        self.train_status_label.pack(fill="x", padx=14, pady=(4, 14))
 
-        list_frame = ttk.LabelFrame(main_frame, text="Danh sách người đã đăng ký", padding=12)
+        # ==================================================
+        # Card bên phải: Danh sách người đã đăng ký
+        # ==================================================
+        list_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16,
+            border_width=0
+        )
         list_frame.grid(row=1, column=1, sticky="nsew")
+        list_frame.rowconfigure(1, weight=1)
+        list_frame.columnconfigure(0, weight=1)
+
+        list_title = ctk.CTkLabel(
+            list_frame,
+            text="Danh sách người đã đăng ký",
+            font=("Arial", 15, "bold"),
+            text_color=self.colors["text"]
+        )
+        list_title.grid(row=0, column=0, sticky="w", padx=14, pady=(14, 8))
+
+        table_container = ctk.CTkFrame(
+            list_frame,
+            fg_color="transparent",
+            corner_radius=0
+        )
+        table_container.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 10))
+        table_container.rowconfigure(0, weight=1)
+        table_container.columnconfigure(0, weight=1)
 
         columns = ("raw_name", "display_name", "image_count")
         self.people_tree = ttk.Treeview(
-            list_frame,
+            table_container,
             columns=columns,
             show="headings"
         )
@@ -546,22 +624,45 @@ class FaceAttendanceApp:
         self.people_tree.column("display_name", width=220)
         self.people_tree.column("image_count", width=80, anchor="center")
 
-        self.people_tree.pack(fill="both", expand=True)
+        self.people_tree.grid(row=0, column=0, sticky="nsew")
 
-        people_button_frame = ttk.Frame(list_frame)
-        people_button_frame.pack(fill="x", pady=(8, 0))
+        people_scrollbar = ttk.Scrollbar(
+            table_container,
+            orient="vertical",
+            command=self.people_tree.yview
+        )
+        self.people_tree.configure(yscrollcommand=people_scrollbar.set)
+        people_scrollbar.grid(row=0, column=1, sticky="ns")
 
-        ttk.Button(
+        people_button_frame = ctk.CTkFrame(
+            list_frame,
+            fg_color="transparent"
+        )
+        people_button_frame.grid(row=2, column=0, sticky="ew", padx=14, pady=(0, 14))
+
+        self.load_selected_button = ctk.CTkButton(
             people_button_frame,
             text="Chọn để sửa",
+            width=120,
+            height=34,
+            corner_radius=9,
+            fg_color="#64748b",
+            hover_color="#475569",
             command=self.on_load_selected_person
-        ).pack(side="left", padx=(0, 8))
+        )
+        self.load_selected_button.pack(side="left", padx=(0, 8))
 
-        ttk.Button(
+        self.delete_person_button = ctk.CTkButton(
             people_button_frame,
             text="Xóa người được chọn",
+            width=160,
+            height=34,
+            corner_radius=9,
+            fg_color=self.colors["danger"],
+            hover_color="#b91c1c",
             command=self.on_delete_selected_person
-        ).pack(side="left")
+        )
+        self.delete_person_button.pack(side="left")
 
         self.people_tree.bind(
             "<Double-1>",
@@ -1554,18 +1655,18 @@ class FaceAttendanceApp:
         info = get_model_info()
 
         if not info["exists"]:
-            self.train_status_label.config(
+            self.train_status_label.configure(
                 text="Train status: Chưa có model. Vui lòng train model."
             )
             return
 
         if info["error"]:
-            self.train_status_label.config(
+            self.train_status_label.configure(
                 text=f"Train status: Model lỗi - {info['error']}"
             )
             return
 
-        self.train_status_label.config(
+        self.train_status_label.configure(
             text=(
                 f"Train status: Đã có model | "
                 f"Người: {info['people_count']} | "
@@ -1593,7 +1694,7 @@ class FaceAttendanceApp:
 
         self.train_running = True
         self.update_button_states()
-        self.train_status_label.config(text="Train status: Đang train model...")
+        self.train_status_label.configure(text="Train status: Đang train model...")
         self.set_system_status("Đang train model...", "warning")
 
         self.train_thread = threading.Thread(
@@ -1630,7 +1731,7 @@ class FaceAttendanceApp:
 
                 if item["type"] == "progress":
                     message = item["message"]
-                    self.train_status_label.config(text=f"Train status: {message}")
+                    self.train_status_label.configure(text=f"Train status: {message}")
 
                 elif item["type"] == "success":
                     self.train_running = False
@@ -1646,7 +1747,7 @@ class FaceAttendanceApp:
                         f"File lưu: {result['encodings_path']}"
                     )
 
-                    self.train_status_label.config(
+                    self.train_status_label.configure(
                         text=(
                             "Train status: Hoàn tất | "
                             f"Encodings: {result['total_encodings']} | "
@@ -1667,7 +1768,7 @@ class FaceAttendanceApp:
                     self.train_running = False
                     self.update_button_states()
 
-                    self.train_status_label.config(
+                    self.train_status_label.configure(
                         text=f"Train status: Lỗi - {item['message']}"
                     )
                     self.set_system_status("Train model lỗi", "error")
