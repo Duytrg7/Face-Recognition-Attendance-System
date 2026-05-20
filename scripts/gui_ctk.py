@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, filedialog
 import customtkinter as ctk
 import csv
 import os
@@ -987,22 +987,19 @@ class FaceAttendanceApp:
                 )
 
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể tải danh sách người:\n{e}")
+            self.show_error("Lỗi", f"Không thể tải danh sách người:\n{e}")
 
     def get_selected_person(self):
         selection = self.people_tree.selection()
 
         if not selection:
-            messagebox.showwarning(
-                "Cảnh báo",
-                "Vui lòng chọn một người trong danh sách."
-            )
+            self.show_warning("Cảnh báo", "Vui lòng chọn một người trong danh sách.")
             return None
 
         values = self.people_tree.item(selection[0], "values")
 
         if not values:
-            messagebox.showwarning(
+            self.show_warning(
                 "Cảnh báo",
                 "Không đọc được dữ liệu người được chọn."
             )
@@ -1037,7 +1034,7 @@ class FaceAttendanceApp:
                 self.history_tree.insert("", "end", values=row)
 
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể tải lịch sử chấm công:\n{e}")
+            self.show_error("Lỗi", f"Không thể tải lịch sử chấm công:\n{e}")
 
     def refresh_recent_attendance(self):
         try:
@@ -1066,7 +1063,7 @@ class FaceAttendanceApp:
             )
 
             if not rows:
-                messagebox.showinfo("Thông báo", "Không có dữ liệu để xuất.")
+                self.show_info("Thông báo", "Không có dữ liệu để xuất.")
                 return
 
             file_path = filedialog.asksaveasfilename(
@@ -1083,10 +1080,10 @@ class FaceAttendanceApp:
                 writer.writerow(["ID", "Tên", "Thời gian", "Loại"])
                 writer.writerows(rows)
 
-            messagebox.showinfo("Thành công", f"Đã xuất file:\n{file_path}")
+            self.show_success("Thành công", f"Đã xuất file:\n{file_path}")
 
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể export CSV:\n{e}")
+            self.show_error("Lỗi", f"Không thể export CSV:\n{e}")
 
     def clear_frame_queue(self):
         try:
@@ -1467,7 +1464,7 @@ class FaceAttendanceApp:
                     self.set_system_status(f"Lỗi - {item['message']}", "error")
 
                     if not self.app_closing:
-                        messagebox.showerror("Lỗi camera", item["message"])
+                        self.show_error("Lỗi camera", item["message"])
 
         except queue.Empty:
             pass
@@ -1506,9 +1503,10 @@ class FaceAttendanceApp:
 
     def on_close(self):
         if self.train_running:
-            confirm = messagebox.askyesno(
+            confirm = self.ask_custom_yes_no(
                 "Đang train model",
-                "Model đang được train. Đóng ứng dụng lúc này có thể làm gián đoạn quá trình train.\n\nBạn vẫn muốn đóng?"
+                "Model đang được train. Đóng ứng dụng lúc này có thể làm gián đoạn quá trình train.\n\n"
+                "Bạn vẫn muốn đóng?"
             )
 
             if not confirm:
@@ -1544,6 +1542,264 @@ class FaceAttendanceApp:
             fg_color=color_map.get(level, self.colors["muted"]),
             text_color=fg_map.get(level, self.colors["text"])
         )
+
+    # ==================================================
+    # CUSTOM DIALOG FUNCTIONS
+    # ==================================================
+
+    def center_dialog(self, dialog, width=420, height=220, parent=None):
+        dialog.update_idletasks()
+
+        if parent is not None and parent.winfo_exists():
+            parent_x = parent.winfo_rootx()
+            parent_y = parent.winfo_rooty()
+            parent_w = parent.winfo_width()
+            parent_h = parent.winfo_height()
+
+            x = parent_x + (parent_w // 2) - (width // 2)
+            y = parent_y + (parent_h // 2) - (height // 2)
+        else:
+            screen_w = dialog.winfo_screenwidth()
+            screen_h = dialog.winfo_screenheight()
+
+            x = (screen_w // 2) - (width // 2)
+            y = (screen_h // 2) - (height // 2)
+
+        dialog.geometry(f"{width}x{height}+{x}+{y}")
+
+    def show_custom_message(self, title, message, dialog_type="info", parent=None):
+        parent_window = parent if parent is not None else self.root
+
+        color_map = {
+            "info": self.colors["primary"],
+            "success": self.colors["success"],
+            "warning": self.colors["warning"],
+            "error": self.colors["danger"],
+        }
+
+        icon_map = {
+            "info": "i",
+            "success": "✓",
+            "warning": "!",
+            "error": "×",
+        }
+
+        dialog_color = color_map.get(dialog_type, self.colors["primary"])
+        icon_text = icon_map.get(dialog_type, "i")
+
+        dialog = ctk.CTkToplevel(parent_window)
+        dialog.title(title)
+        dialog.resizable(False, False)
+        dialog.transient(parent_window)
+
+        dialog_width = 560
+        dialog_height = 320
+        self.center_dialog(dialog, dialog_width, dialog_height, parent_window)
+
+        main_frame = ctk.CTkFrame(
+            dialog,
+            fg_color=self.colors["panel"],
+            corner_radius=16
+        )
+        main_frame.pack(fill="both", expand=True, padx=16, pady=16)
+
+        header_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent"
+        )
+        header_frame.pack(fill="x", padx=16, pady=(16, 8))
+
+        icon_label = ctk.CTkLabel(
+            header_frame,
+            text=icon_text,
+            width=38,
+            height=38,
+            corner_radius=19,
+            fg_color=dialog_color,
+            text_color="white",
+            font=("Arial", 20, "bold")
+        )
+        icon_label.pack(side="left", padx=(0, 12))
+
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text=title,
+            font=("Arial", 17, "bold"),
+            text_color=self.colors["text"],
+            anchor="w"
+        )
+        title_label.pack(side="left", fill="x", expand=True)
+
+        message_label = ctk.CTkLabel(
+            main_frame,
+            text=message,
+            font=("Arial", 13),
+            text_color=self.colors["subtext"],
+            justify="left",
+            anchor="w",
+            wraplength=470
+        )
+        message_label.pack(fill="both", expand=True, padx=16, pady=(4, 18))
+
+        button_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent"
+        )
+        button_frame.pack(fill="x", padx=16, pady=(0, 16))
+
+        ok_button = ctk.CTkButton(
+            button_frame,
+            text="OK",
+            width=110,
+            height=36,
+            corner_radius=9,
+            fg_color=dialog_color,
+            hover_color=dialog_color,
+            command=dialog.destroy
+        )
+        ok_button.pack(side="right")
+
+        dialog.bind("<Return>", lambda event: dialog.destroy())
+        dialog.bind("<Escape>", lambda event: dialog.destroy())
+
+        dialog.update_idletasks()
+        dialog.lift()
+        dialog.focus_force()
+
+        try:
+            dialog.grab_set()
+        except tk.TclError:
+            pass
+
+        ok_button.focus_set()
+        dialog.wait_window()
+
+    def ask_custom_yes_no(self, title, message, parent=None):
+        parent_window = parent if parent is not None else self.root
+        result = {"value": False}
+
+        dialog = ctk.CTkToplevel(parent_window)
+        dialog.title(title)
+        dialog.resizable(False, False)
+        dialog.transient(parent_window)
+
+        dialog_width = 580
+        dialog_height = 340
+        self.center_dialog(dialog, dialog_width, dialog_height, parent_window)
+
+        def choose_yes():
+            result["value"] = True
+            dialog.destroy()
+
+        def choose_no():
+            result["value"] = False
+            dialog.destroy()
+
+        dialog.protocol("WM_DELETE_WINDOW", choose_no)
+
+        main_frame = ctk.CTkFrame(
+            dialog,
+            fg_color=self.colors["panel"],
+            corner_radius=16
+        )
+        main_frame.pack(fill="both", expand=True, padx=16, pady=16)
+
+        header_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent"
+        )
+        header_frame.pack(fill="x", padx=16, pady=(16, 8))
+
+        icon_label = ctk.CTkLabel(
+            header_frame,
+            text="?",
+            width=38,
+            height=38,
+            corner_radius=19,
+            fg_color=self.colors["primary"],
+            text_color="white",
+            font=("Arial", 20, "bold")
+        )
+        icon_label.pack(side="left", padx=(0, 12))
+
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text=title,
+            font=("Arial", 17, "bold"),
+            text_color=self.colors["text"],
+            anchor="w"
+        )
+        title_label.pack(side="left", fill="x", expand=True)
+
+        message_label = ctk.CTkLabel(
+            main_frame,
+            text=message,
+            font=("Arial", 13),
+            text_color=self.colors["subtext"],
+            justify="left",
+            anchor="w",
+            wraplength=500
+        )
+        message_label.pack(fill="both", expand=True, padx=16, pady=(4, 18))
+
+        button_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent"
+        )
+        button_frame.pack(fill="x", padx=16, pady=(0, 16))
+
+        no_button = ctk.CTkButton(
+            button_frame,
+            text="Không",
+            width=110,
+            height=36,
+            corner_radius=9,
+            fg_color="#64748b",
+            hover_color="#475569",
+            command=choose_no
+        )
+        no_button.pack(side="right", padx=(8, 0))
+
+        yes_button = ctk.CTkButton(
+            button_frame,
+            text="Có",
+            width=110,
+            height=36,
+            corner_radius=9,
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["primary_dark"],
+            command=choose_yes
+        )
+        yes_button.pack(side="right")
+
+        dialog.bind("<Return>", lambda event: choose_yes())
+        dialog.bind("<Escape>", lambda event: choose_no())
+
+        dialog.update_idletasks()
+        dialog.lift()
+        dialog.focus_force()
+
+        try:
+            dialog.grab_set()
+        except tk.TclError:
+            pass
+
+        yes_button.focus_set()
+        dialog.wait_window()
+
+        return result["value"]
+
+    def show_info(self, title, message, parent=None):
+        self.show_custom_message(title, message, "info", parent)
+
+    def show_success(self, title, message, parent=None):
+        self.show_custom_message(title, message, "success", parent)
+
+    def show_warning(self, title, message, parent=None):
+        self.show_custom_message(title, message, "warning", parent)
+
+    def show_error(self, title, message, parent=None):
+        self.show_custom_message(title, message, "error", parent)
 
     # ==================================================
     # CAPTURE FACE IMAGE FUNCTIONS
@@ -1747,7 +2003,7 @@ class FaceAttendanceApp:
 
                 elif item["type"] == "error":
                     self.capture_running = False
-                    messagebox.showerror("Lỗi camera", item["message"])
+                    self.show_error("Lỗi camera", item["message"])
 
         except queue.Empty:
             pass
@@ -1788,7 +2044,7 @@ class FaceAttendanceApp:
 
     def save_capture_image(self):
         if self.capture_current_frame is None:
-            messagebox.showwarning(
+            self.show_warning(
                 "Cảnh báo",
                 "Chưa có frame để lưu.",
                 parent=self.capture_window
@@ -1801,7 +2057,7 @@ class FaceAttendanceApp:
             success = cv2.imwrite(file_path, self.capture_current_frame)
 
             if not success:
-                messagebox.showerror(
+                self.show_error(
                     "Lỗi",
                     "Không thể lưu ảnh.",
                     parent=self.capture_window
@@ -1832,7 +2088,7 @@ class FaceAttendanceApp:
                 self.capture_window.focus_force()
 
         except Exception as e:
-            messagebox.showerror(
+            self.show_error(
                 "Lỗi",
                 f"Không thể lưu ảnh:\n{e}",
                 parent=self.capture_window
@@ -1842,7 +2098,7 @@ class FaceAttendanceApp:
         should_train = False
 
         if self.capture_saved_count > 0:
-            should_train = messagebox.askyesno(
+            should_train = self.ask_custom_yes_no(
                 "Train lại model?",
                 f"Bạn vừa chụp {self.capture_saved_count} ảnh mới.\n\n"
                 f"Cần train lại model để ảnh mới có hiệu lực trong nhận diện.\n\n"
@@ -1895,7 +2151,7 @@ class FaceAttendanceApp:
 
     def start_train_model(self):
         if self.train_running:
-            messagebox.showinfo("Thông báo", "Model đang được train, vui lòng chờ.")
+            self.show_info("Thông báo", "Model đang được train, vui lòng chờ.")
             return
 
         # Không nên train khi camera điểm danh đang chạy
@@ -1976,7 +2232,7 @@ class FaceAttendanceApp:
                     self.load_people_list()
                     self.update_model_status()
 
-                    messagebox.showinfo("Thành công", message)
+                    self.show_success("Thành công", message)
 
                 elif item["type"] == "error":
                     self.train_running = False
@@ -1987,7 +2243,7 @@ class FaceAttendanceApp:
                     )
                     self.set_system_status("Train model lỗi", "error")
 
-                    messagebox.showerror(
+                    self.show_error(
                         "Lỗi train model",
                         f"Không thể train model:\n{item['message']}"
                     )
@@ -2012,7 +2268,7 @@ class FaceAttendanceApp:
 
             self.load_people_list()
 
-            messagebox.showinfo(
+            self.show_success(
                 "Thành công",
                 f"Đã lưu người dùng:\n\n"
                 f"Raw name: {saved_raw_name}\n"
@@ -2020,7 +2276,7 @@ class FaceAttendanceApp:
             )
 
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể lưu người dùng:\n{e}")
+            self.show_error("Lỗi", f"Không thể lưu người dùng:\n{e}")
 
     def on_start_camera(self):
         self.start_camera()
@@ -2047,10 +2303,10 @@ class FaceAttendanceApp:
             self.open_capture_window(saved_raw_name, saved_display_name)
 
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể mở chức năng chụp ảnh:\n{e}")
+            self.show_error("Lỗi", f"Không thể mở chức năng chụp ảnh:\n{e}")
 
     def on_train_model(self):
-        confirm = messagebox.askyesno(
+        confirm = self.ask_custom_yes_no(
             "Xác nhận",
             "Bạn có muốn train lại toàn bộ model từ dataset hiện tại không?"
         )
@@ -2094,7 +2350,7 @@ class FaceAttendanceApp:
 
         raw_name, display_name = selected
 
-        confirm = messagebox.askyesno(
+        confirm = self.ask_custom_yes_no(
             "Xác nhận xóa",
             f"Bạn có chắc muốn xóa người này khỏi dataset?\n\n"
             f"Raw name: {raw_name}\n"
@@ -2130,9 +2386,9 @@ class FaceAttendanceApp:
             if backup_path:
                 message += f"\nBackup tại:\n{backup_path}"
 
-            messagebox.showinfo("Thành công", message)
+            self.show_success("Thành công", message)
 
-            should_train = messagebox.askyesno(
+            should_train = self.ask_custom_yes_no(
                 "Train lại model?",
                 "Bạn nên train lại model sau khi xóa người.\n\n"
                 "Nếu không train lại, encodings.pickle cũ vẫn có thể còn dữ liệu của người vừa xóa.\n\n"
@@ -2143,13 +2399,13 @@ class FaceAttendanceApp:
                 self.start_train_model()
 
         except Exception as e:
-            messagebox.showerror(
+            self.show_error(
                 "Lỗi",
                 f"Không thể xóa người dùng:\n{e}"
             )
 
     def on_clear_history(self):
-        confirm = messagebox.askyesno(
+        confirm = self.ask_custom_yes_no(
             "Xác nhận xóa lịch sử",
             "Bạn có chắc muốn xóa toàn bộ lịch sử chấm công không?\n\n"
             "Hành động này sẽ xóa toàn bộ dữ liệu trong bảng attendance "
@@ -2159,7 +2415,7 @@ class FaceAttendanceApp:
         if not confirm:
             return
 
-        confirm_again = messagebox.askyesno(
+        confirm_again = self.ask_custom_yes_no(
             "Xác nhận lần nữa",
             "Dữ liệu lịch sử sau khi xóa sẽ không thể khôi phục từ database.\n\n"
             "Bạn vẫn muốn tiếp tục?"
@@ -2174,13 +2430,13 @@ class FaceAttendanceApp:
             self.load_history()
             self.refresh_recent_attendance()
 
-            messagebox.showinfo(
+            self.show_success(
                 "Thành công",
                 "Đã xóa toàn bộ lịch sử chấm công."
             )
 
         except Exception as e:
-            messagebox.showerror(
+            self.show_error(
                 "Lỗi",
                 f"Không thể xóa lịch sử chấm công:\n{e}"
             )
