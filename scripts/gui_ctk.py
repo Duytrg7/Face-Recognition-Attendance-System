@@ -471,7 +471,8 @@ class FaceAttendanceApp:
             recent_frame,
             columns=columns,
             show="headings",
-            height=10
+            height=10,
+            style="Clean.Treeview"
         )
 
         self.recent_tree.heading("id", text="ID")
@@ -639,7 +640,8 @@ class FaceAttendanceApp:
         self.people_tree = ttk.Treeview(
             table_container,
             columns=columns,
-            show="headings"
+            show="headings",
+            style="Clean.Treeview"
         )
 
         self.people_tree.heading("raw_name", text="Tên thư mục")
