@@ -1815,35 +1815,67 @@ class FaceAttendanceApp:
         self.capture_current_frame = None
         self.capture_saved_count = 0
 
-        self.capture_window = tk.Toplevel(self.root)
+        self.capture_window = ctk.CTkToplevel(self.root)
         self.capture_window.title(f"Chụp ảnh khuôn mặt - {display_name}")
-        self.capture_window.geometry("760x600")
-        self.capture_window.minsize(700, 520)
+        self.capture_window.geometry("860x620")
+        self.capture_window.minsize(760, 580)
 
-        self.capture_window.protocol("WM_DELETE_WINDOW", self.close_capture_window)
-        self.capture_window.bind("<space>", lambda event: self.save_capture_image())
-        self.capture_window.bind("<Escape>", lambda event: self.close_capture_window())
+        self.capture_window.protocol(
+            "WM_DELETE_WINDOW", self.close_capture_window
+        )
+        self.capture_window.bind(
+            "<space>", lambda event: self.save_capture_image()
+        )
+        self.capture_window.bind(
+            "<Escape>", lambda event: self.close_capture_window()
+        )
 
-        main_frame = ttk.Frame(self.capture_window, padding=12)
-        main_frame.pack(fill="both", expand=True)
+        main_frame = ctk.CTkFrame(
+            self.capture_window,
+            fg_color=self.colors["bg"],
+            corner_radius=0
+        )
+        main_frame.pack(fill="both", expand=True, padx=14, pady=14)
 
-        title = ttk.Label(
+        title = ctk.CTkLabel(
             main_frame,
             text=f"Chụp ảnh cho: {display_name}",
-            style="Title.TLabel"
+            font=("Arial", 22, "bold"),
+            text_color=self.colors["text"]
         )
-        title.pack(anchor="w", pady=(0, 10))
+        title.pack(anchor="w", pady=(0, 12))
 
-        preview_frame = ttk.LabelFrame(main_frame, text="Camera Preview", padding=10)
+        # ==================================================
+        # Card camera preview
+        # ==================================================
+        preview_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16,
+            border_width=0
+        )
         preview_frame.pack(fill="both", expand=True)
+
+        preview_title = ctk.CTkLabel(
+            preview_frame,
+            text="Camera Preview",
+            font=("Arial", 15, "bold"),
+            text_color=self.colors["text"]
+        )
+        preview_title.pack(anchor="w", padx=14, pady=(14, 8))
 
         self.capture_preview_container = tk.Frame(
             preview_frame,
             bg="black",
-            width=640,
-            height=420
+            width=720,
+            height=340
         )
-        self.capture_preview_container.pack(fill="both", expand=True)
+        self.capture_preview_container.pack(
+            fill="both",
+            expand=True,
+            padx=14,
+            pady=(0, 14)
+        )
         self.capture_preview_container.pack_propagate(False)
 
         self.capture_label = tk.Label(
@@ -1855,32 +1887,60 @@ class FaceAttendanceApp:
         )
         self.capture_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        info_frame = ttk.Frame(main_frame)
-        info_frame.pack(fill="x", pady=(10, 0))
+        # ==================================================
+        # Info + buttons
+        # ==================================================
+        bottom_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors["panel"],
+            corner_radius=16,
+            border_width=0
+        )
+        bottom_frame.pack(fill="x", pady=(12, 0))
 
         image_count = get_person_image_count(raw_name)
 
-        self.capture_info_label = ttk.Label(
-            info_frame,
+        self.capture_info_label = ctk.CTkLabel(
+            bottom_frame,
             text=f"Raw name: {raw_name} | Số ảnh hiện tại: {image_count}",
-            style="Status.TLabel"
+            font=("Arial", 12),
+            text_color=self.colors["subtext"],
+            anchor="w"
         )
-        self.capture_info_label.pack(side="left")
+        self.capture_info_label.pack(fill="x", padx=14, pady=(12, 8))
 
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill="x", pady=(10, 0))
+        button_frame = ctk.CTkFrame(
+            bottom_frame,
+            fg_color="transparent"
+        )
+        button_frame.pack(fill="x", padx=14, pady=(0, 14))
 
-        ttk.Button(
+        capture_button = ctk.CTkButton(
             button_frame,
             text="Chụp ảnh",
+            width=120,
+            height=36,
+            corner_radius=9,
+            fg_color=self.colors["success"],
+            hover_color="#15803d",
             command=self.save_capture_image
-        ).pack(side="left", padx=(0, 8))
+        )
+        capture_button.pack(side="left", padx=(0, 8))
 
-        ttk.Button(
+        close_button = ctk.CTkButton(
             button_frame,
             text="Đóng",
+            width=120,
+            height=36,
+            corner_radius=9,
+            fg_color="#64748b",
+            hover_color="#475569",
             command=self.close_capture_window
-        ).pack(side="left")
+        )
+        close_button.pack(side="left")
+
+        self.capture_window.lift()
+        self.capture_window.focus_force()
 
         self.start_capture_camera()
         self.process_capture_queue()
@@ -2018,8 +2078,8 @@ class FaceAttendanceApp:
         label_height = self.capture_preview_container.winfo_height()
 
         if label_width <= 1 or label_height <= 1:
-            label_width = 640
-            label_height = 420
+            label_width = 720
+            label_height = 340
 
         frame_height, frame_width = frame.shape[:2]
 
@@ -2071,7 +2131,7 @@ class FaceAttendanceApp:
             self.dataset_changed = True
 
             if self.capture_info_label is not None:
-                self.capture_info_label.config(
+                self.capture_info_label.configure(
                     text=(
                         f"Raw name: {self.capture_raw_name} | "
                         f"Số ảnh hiện tại: {image_count} | "
