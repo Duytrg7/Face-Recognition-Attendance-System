@@ -7,6 +7,7 @@ import threading
 import queue
 import time
 import pickle
+from datetime import datetime
 
 import cv2
 import numpy as np
@@ -31,6 +32,7 @@ from people_manager import (
 )
 
 from model_trainer import train_model, get_model_info
+from combros_client import send_combros_fields
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ENCODINGS_PATH = os.path.join(BASE_DIR, "encodings.pickle")
@@ -1010,6 +1012,69 @@ class FaceAttendanceApp:
 
         return raw_name, display_name
 
+    def get_today_attendance_summary(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        rows = get_attendance_records(
+            name_filter="",
+            date_filter=today
+        )
+
+        total_count = len(rows)
+        in_count = 0
+        out_count = 0
+
+        for row in rows:
+            attendance_type = str(row[3])
+
+            if attendance_type == "Vào":
+                in_count += 1
+            elif attendance_type == "Ra":
+                out_count += 1
+
+        people_count = len(get_people_list())
+
+        return {
+            "total": total_count,
+            "in": in_count,
+            "out": out_count,
+            "people": people_count
+        }
+
+
+    def send_combros_attendance_async(self, attendance_type=None, fps=0, camera_status=1):
+        def worker():
+            try:
+                summary = self.get_today_attendance_summary()
+
+                if attendance_type == "Vào":
+                    type_code = 1
+                elif attendance_type == "Ra":
+                    type_code = 2
+                else:
+                    type_code = 0
+
+                ok, response = send_combros_fields(
+                    field1=summary["total"],
+                    field2=summary["in"],
+                    field3=summary["out"],
+                    field4=1,
+                    field5=round(float(fps), 2),
+                    field6=summary["people"],
+                    field7=type_code,
+                    field8=camera_status
+                )
+
+                if ok:
+                    print(f"[COMBROS] Sent successfully: {response}")
+                else:
+                    print(f"[COMBROS] Send failed: {response}")
+
+            except Exception as e:
+                print(f"[COMBROS] Error: {e}")
+
+        threading.Thread(target=worker, daemon=True).start()
+
     # ==================================================
     # DATABASE / TABLE FUNCTIONS
     # ==================================================
@@ -1451,6 +1516,19 @@ class FaceAttendanceApp:
                     if item.get("attendance_saved", False):
                         self.refresh_recent_attendance()
                         self.load_history()
+
+                        attendance_type = None
+
+                        if " - Vào - " in status:
+                            attendance_type = "Vào"
+                        elif " - Ra - " in status:
+                            attendance_type = "Ra"
+
+                        self.send_combros_attendance_async(
+                            attendance_type=attendance_type,
+                            fps=fps,
+                            camera_status=1
+                        )
 
                 elif item["type"] == "status":
                     if not self.camera_running:
