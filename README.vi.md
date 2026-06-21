@@ -180,24 +180,25 @@ Các thao tác chính: `init_db()`, `insert_attendance(name)`, `get_recent_atten
 
 ```
 face-recognition-attendance/
-├── README.md                   # Tổng quan hệ thống (Tiếng Anh)
-├── README.vi.md                 # Tổng quan hệ thống (file này, Tiếng Việt)
+├── images/                         # Hình ảnh phần cứng và screenshot GUI
+│   ├── hardware_overview.jpg
+│   ├── gui_attendance_tab.jpg
+│   ├── gui_face_management_tab.jpg
+│   └── gui_history_tab.jpg
 ├── scripts/
 │   ├── capture_images.py          # Cửa sổ chụp ảnh khuôn mặt
 │   ├── database.py                 # Khởi tạo SQLite, ghi/đọc lịch sử chấm công
-│   ├── gui.py                      # GUI CustomTkinter chính, camera thread, queue
+│   ├── gui_ctk.py                  # GUI CustomTkinter chính (đang dùng), camera thread, queue
+│   ├── gui.py                      # Bản GUI cũ (legacy, không còn sử dụng)
 │   ├── model_trainer.py            # Đóng gói quá trình tạo encoding
 │   ├── people_manager.py           # Quản lý people.json và dataset (thêm/sửa/xóa)
 │   ├── recognize.py                # Logic nhận diện
 │   ├── test_camera_simple.py       # Script test camera độc lập
 │   └── train_model.py              # Script train/encode độc lập
 ├── .gitignore
-├── people.example.json             # Template cho people.json (không có dữ liệu thật)
-└── images/                         # Hình ảnh phần cứng và screenshot GUI
-    ├── hardware_overview.jpg
-    ├── gui_attendance_tab.jpg
-    ├── gui_face_management_tab.jpg
-    └── gui_history_tab.jpg
+├── README.md                       # Tổng quan hệ thống (Tiếng Anh)
+├── README.vi.md                    # Tổng quan hệ thống (file này, Tiếng Việt)
+└── people.example.json             # Template cho people.json (không có dữ liệu thật)
 ```
 
 > Các file runtime/tự sinh như `dataset/`, `deleted_dataset/`, `encodings.pickle`, `attendance.db`, `venv/` đã được loại trừ bằng `.gitignore` và sẽ không xuất hiện trên GitHub — xem mục Bảo Mật & Quyền Riêng Tư bên dưới.
