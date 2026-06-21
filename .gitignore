@@ -37,3 +37,5 @@ venv/
 
 # Deleted face dataset backup
 deleted_dataset/
+
+combros_config.json
