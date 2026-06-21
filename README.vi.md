@@ -47,7 +47,7 @@ flowchart TB
 ## Hình Ảnh Phần Cứng
 
 <p align="center">
-  <img src="images/hardware_overview.jpg" alt="Raspberry Pi 4 và Logitech C270" width="600">
+  <img src="images/hardware_overview.png" alt="Raspberry Pi 4 và Logitech C270" width="600">
 </p>
 
 Bố trí Raspberry Pi 4 và webcam Logitech C270.
@@ -56,15 +56,15 @@ Bố trí Raspberry Pi 4 và webcam Logitech C270.
 
 ## Giao Diện GUI
 
-<img src="images/gui_attendance_tab.jpg" alt="Tab Điểm Danh" width="500">
+<img src="images/gui_attendance_tab.png" alt="Tab Điểm Danh" width="500">
 
 **Tab Điểm danh** — hình ảnh camera trực tiếp kèm bounding box, trạng thái hệ thống (FPS, trạng thái nhận diện, cooldown), và bảng điểm danh gần nhất.
 
-<img src="images/gui_face_management_tab.jpg" alt="Tab Quản Lý Khuôn Mặt" width="500">
+<img src="images/gui_face_management_tab.png" alt="Tab Quản Lý Khuôn Mặt" width="500">
 
 **Tab Quản lý khuôn mặt** — đăng ký người mới, chụp ảnh khuôn mặt, train lại encoding, xem/sửa/xóa người dùng đã đăng ký.
 
-<img src="images/gui_history_tab.jpg" alt="Tab Lịch Sử" width="500">
+<img src="images/gui_history_tab.png" alt="Tab Lịch Sử" width="500">
 
 **Tab Lịch sử** — lọc lịch sử chấm công theo tên/ngày, làm mới, xuất CSV và xóa lịch sử.
 
