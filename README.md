@@ -47,7 +47,7 @@ flowchart TB
 ## Hardware Image
 
 <p align="center">
-  <img src="images/hardware_overview.jpg" alt="Raspberry Pi 4 and Logitech C270 Setup" width="600">
+  <img src="images/hardware_overview.png" alt="Raspberry Pi 4 and Logitech C270 Setup" width="600">
 </p>
 
 Raspberry Pi 4 and Logitech C270 webcam setup.
@@ -56,15 +56,15 @@ Raspberry Pi 4 and Logitech C270 webcam setup.
 
 ## GUI Interface
 
-<img src="images/gui_attendance_tab.jpg" alt="Attendance Tab" width="500">
+<img src="images/gui_attendance_tab.png" alt="Attendance Tab" width="500">
 
 **Attendance tab** — live camera feed with bounding boxes, system status (FPS, recognition state, cooldown), and the most recent attendance records.
 
-<img src="images/gui_face_management_tab.jpg" alt="Face Management Tab" width="500">
+<img src="images/gui_face_management_tab.png" alt="Face Management Tab" width="500">
 
 **Face Management tab** — register new people, capture face photos, retrain encodings, and view/edit/delete registered users.
 
-<img src="images/gui_history_tab.jpg" alt="History Tab" width="500">
+<img src="images/gui_history_tab.png" alt="History Tab" width="500">
 
 **History tab** — filter attendance records by name and date, refresh, export to CSV, and clear history.
 
