@@ -56,17 +56,17 @@ Bố trí Raspberry Pi 4 và webcam Logitech C270.
 
 ## Giao Diện GUI
 
-<img src="images/gui_attendance_tab.png" alt="Tab Điểm Danh" width="500">
-
 **Tab Điểm danh** — hình ảnh camera trực tiếp kèm bounding box, trạng thái hệ thống (FPS, trạng thái nhận diện, cooldown), và bảng điểm danh gần nhất.
 
-<img src="images/gui_face_management_tab.png" alt="Tab Quản Lý Khuôn Mặt" width="500">
+<img src="images/gui_attendance_tab.png" alt="Tab Điểm Danh" width="500">
 
 **Tab Quản lý khuôn mặt** — đăng ký người mới, chụp ảnh khuôn mặt, train lại encoding, xem/sửa/xóa người dùng đã đăng ký.
 
-<img src="images/gui_history_tab.png" alt="Tab Lịch Sử" width="500">
+<img src="images/gui_face_management_tab.png" alt="Tab Quản Lý Khuôn Mặt" width="500">
 
 **Tab Lịch sử** — lọc lịch sử chấm công theo tên/ngày, làm mới, xuất CSV và xóa lịch sử.
+
+<img src="images/gui_history_tab.png" alt="Tab Lịch Sử" width="500">
 
 ---
 
@@ -173,8 +173,9 @@ Các thao tác chính: `init_db()`, `insert_attendance(name)`, `get_recent_atten
 
 - Raspberry Pi 4
 - Webcam USB Logitech C270
-- Powered USB Hub (ORICO TWU3-4A) — tùy chọn, cho thiết bị USB kén nguồn
-- Thẻ microSD
+- Power Adapter 5V 3A USB-C
+- Thẻ microSD 64GB
+- Dây MicroHDMI to HDMI + Video Capture Card: hiện Raspberry OS lên màn hình laptop để có được trải nghiệm mượt mà hơn
 
 ## Cấu Trúc Project
 
