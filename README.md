@@ -56,17 +56,17 @@ Raspberry Pi 4 and Logitech C270 webcam setup.
 
 ## GUI Interface
 
-<img src="images/gui_attendance_tab.png" alt="Attendance Tab" width="500">
-
 **Attendance tab** — live camera feed with bounding boxes, system status (FPS, recognition state, cooldown), and the most recent attendance records.
 
-<img src="images/gui_face_management_tab.png" alt="Face Management Tab" width="500">
+<img src="images/gui_attendance_tab.png" alt="Attendance Tab" width="500">
 
 **Face Management tab** — register new people, capture face photos, retrain encodings, and view/edit/delete registered users.
 
-<img src="images/gui_history_tab.png" alt="History Tab" width="500">
+<img src="images/gui_face_management_tab.png" alt="Face Management Tab" width="500">
 
 **History tab** — filter attendance records by name and date, refresh, export to CSV, and clear history.
+
+<img src="images/gui_history_tab.png" alt="History Tab" width="500">
 
 ---
 
@@ -173,8 +173,9 @@ Key operations: `init_db()`, `insert_attendance(name)`, `get_recent_attendance(l
 
 - Raspberry Pi 4
 - Logitech C270 USB webcam
-- Powered USB Hub (ORICO TWU3-4A) — optional, for power-sensitive USB devices
-- microSD card
+- Powered Adapter 5V 3A USB-C
+- MicroSD card 64GB
+- Micro HDMI to HDMI cable + Video Capture: showing Raspberry OS on laptop screnn for better experience
 
 ## Project Structure
 
