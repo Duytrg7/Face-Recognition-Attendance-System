@@ -44,3 +44,9 @@ m1_tests/logs/
 m1_tests/server_stub/stub.db
 m1_tests/models/face_detection_yunet_*.onnx
 m1_tests/models/face_recognition_sface_*.onnx
+
+# Edge M2 – dữ liệu sinh trắc học, không đưa lên Git
+edge/data/
+edge/logs/
+edge/models/face_detection_yunet_*.onnx
+edge/models/face_recognition_sface_*.onnx

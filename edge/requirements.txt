@@ -1,0 +1,10 @@
+# Raspberry Pi 4 (Raspberry Pi OS 64-bit, Python 3.13) – dùng chung venv của ĐA1
+# dlib đã có sẵn trong venv ĐA1 (biên dịch lâu) – KHÔNG cài lại.
+opencv-python>=4.8        # cần FaceDetectorYN / FaceRecognizerSF (đã có 4.13)
+numpy>=1.26
+onnxruntime>=1.17
+pyyaml>=6.0
+customtkinter>=5.2
+pillow>=10.0
+face_recognition_models==0.3.0   # chỉ lấy file mô hình dlib (5 landmark + ResNet)
+setuptools<81                    # face_recognition_models còn dùng pkg_resources

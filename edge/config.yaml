@@ -1,0 +1,76 @@
+# Cấu hình điểm chấm công (Đồ án 2 – M2). Đường dẫn tương đối tính từ thư mục edge/.
+device:
+  id: pi-01
+  name: "Phòng Lab"
+
+paths:
+  db: data/attendance.db
+  snapshots: data/snapshots
+  enroll_images: data/enroll
+  logs: logs
+  models: models
+
+camera:
+  source: /dev/video0        # hoặc đường dẫn video .mp4 / thư mục ảnh để chạy thử
+  width: 640
+  height: 480
+  fps: 30
+  lock: true                 # khoá thông số bằng v4l2-ctl
+  exposure: 300              # đơn vị 100µs -> 30ms (chốt ở M1)
+  white_balance: 4600
+  gain: 16                   # M1 chưa khoá gain; M2 cố định
+
+detector:
+  name: yunet                # yunet | hog (hog chỉ để dự phòng/test, không có landmark)
+  input_width: 320           # YuNet chạy trên khung thu nhỏ 320x240
+  score_threshold: 0.8
+
+quality:
+  min_face_px: 150           # chiều rộng mặt quy về khung 640x480
+  min_sharpness: 60          # phương sai Laplacian trên mặt resize 112x112
+  brightness: [60, 200]
+  yaw_ratio: [0.6, 1.6]      # cần landmark (YuNet)
+  margin_px: 10
+
+liveness:
+  enabled: true
+  models:                    # file ONNX và tỉ lệ crop gốc của mô hình pretrained
+    - [2.7_80x80_MiniFASNetV2.onnx, 2.7]
+    - [4_0_0_80x80_MiniFASNetV1SE.onnx, 4.0]
+  crop_scale: null           # null = dùng tỉ lệ gốc ở trên (bị giới hạn trong khung); M3 fine-tune dùng 1.5
+  threshold: 0.5             # điểm real trung bình >= threshold -> mặt thật
+  threads: 2
+
+embedder:
+  name: sface                # sface | dlib
+  match_threshold:           # sface: cosine >= ngưỡng; dlib: euclid < ngưỡng
+    sface: 0.363
+    dlib: 0.50
+  margin: 0.05               # độ chênh tối thiểu với người gần thứ hai
+  embed_frames_per_track:    # E: số khung tính embedding mỗi track (0 = mọi khung)
+    sface: 0
+    dlib: 3
+
+decision:
+  window: 15                 # N phiếu gần nhất
+  k_ratio: 0.7
+  k_min: 3
+  m_ratio: 0.5               # phiếu giả mạo
+  m_min: 4
+  t_min_s: 1.0
+  t_min_spoof_s: 0.6        # tránh báo giả mạo oan từ vài khung nhiễu lúc vừa bước vào
+  t_out_s: 5.0
+  lost_s: 1.0                # mất mặt quá lâu -> kết thúc track
+  iou_track: 0.3
+  result_show_s: 3.0
+  min_gap_min: 5             # khoảng cách tối thiểu giữa 2 bản ghi của 1 người (đặt 0.5 khi quay demo Vào/Ra)
+  day_start: "04:00"
+
+kiosk:
+  fullscreen: false
+  title: "Chấm công khuôn mặt"
+  display_fps: 15
+
+watchdog:
+  startup_grace_s: 90        # thời gian nạp mô hình lần đầu
+  stale_s: 10

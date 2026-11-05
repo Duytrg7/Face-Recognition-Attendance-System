@@ -1,0 +1,19 @@
+# Dịch vụ người dùng: tự chạy kiosk khi đăng nhập desktop, tự khởi động lại nếu thoát lỗi.
+# Cài:  mkdir -p ~/.config/systemd/user && cp systemd/attendance.service ~/.config/systemd/user/
+#       (sửa 2 đường dẫn bên dưới cho đúng)
+#       systemctl --user daemon-reload && systemctl --user enable --now attendance
+# Xem log: journalctl --user -u attendance -f
+[Unit]
+Description=Face attendance kiosk (Do an 2)
+After=graphical-session.target
+
+[Service]
+WorkingDirectory=/home/piregface/face_attendance/edge
+ExecStart=/home/piregface/face_attendance/venv/bin/python -m attendance.app
+Environment=DISPLAY=:0
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
