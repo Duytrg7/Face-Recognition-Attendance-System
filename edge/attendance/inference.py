@@ -18,6 +18,8 @@ from .decision import Decider, Vote
 from .shm import FrameBuffer
 from .vision import Gallery, Liveness, check_quality, make_detector, make_embedder
 
+DEBUG = False
+
 
 class Pipeline:
     def __init__(self, cfg):
@@ -86,6 +88,10 @@ class Pipeline:
 
 
 def run(cfg_path, fb_handle, result_q, heartbeat, stop_evt, session="", ready_evt=None):
+    import signal
+    global DEBUG
+    DEBUG = os.environ.get("ATT_DEBUG") == "1"
+    signal.signal(signal.SIGINT, signal.SIG_IGN)  # Ctrl+C do Process A xử lý, B tắt qua stop_evt
     cfg = config_mod.load(cfg_path)
     log_path = os.path.join(cfg["paths"]["logs"], "decisions.csv")
     new_log = not os.path.exists(log_path)
@@ -130,6 +136,10 @@ def run(cfg_path, fb_handle, result_q, heartbeat, stop_evt, session="", ready_ev
             if tr is not None and face is not None and not tr.decided:
                 v = P.vote(frame, face, tr)
                 D.add(tr, v)
+                if DEBUG:
+                    print(f"[dbg] {v.kind:7} live={'' if v.live is None else f'{v.live:.2f}'} "
+                          f"sim/dist={'' if v.dist is None else f'{v.dist:.3f}'} mặt={int(face.bbox[2])}px "
+                          f"{v.hint}", flush=True)
                 out = D.evaluate(tr, now)
                 if out and out[0] == "timeout":
                     wlog.writerow([datetime.now().isoformat(timespec="seconds"), session, "timeout", "", "",

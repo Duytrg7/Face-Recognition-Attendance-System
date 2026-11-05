@@ -49,6 +49,8 @@ class EdgeApp:
         w = self.cfg["watchdog"]
         while not self.stop.is_set():
             time.sleep(1)
+            if self.stop.is_set():  # đang tắt chương trình -> không khởi động lại
+                break
             now = time.time()
             alive = self.proc is not None and self.proc.is_alive()
             stale = self.hb.value and now - self.hb.value > w["stale_s"]
@@ -148,12 +150,15 @@ def main():
         if args.headless:
             run_headless(app, args.seconds)
         else:
+            print(f"[A] DISPLAY={os.environ.get('DISPLAY')} WAYLAND_DISPLAY={os.environ.get('WAYLAND_DISPLAY')}", flush=True)
             from .kiosk import Kiosk
             Kiosk(app).run()
     except KeyboardInterrupt:
         pass
     finally:
+        print("[A] đang tắt…", flush=True)
         app.shutdown()
+        print("[A] đã tắt.", flush=True)
 
 
 if __name__ == "__main__":

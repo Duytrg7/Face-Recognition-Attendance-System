@@ -32,8 +32,8 @@ class Kiosk:
         self.root.geometry("1040x600")
         if cfg["kiosk"]["fullscreen"]:
             self.root.attributes("-fullscreen", True)
-        self.root.bind("<Escape>", lambda e: self.close())
-        self.root.protocol("WM_DELETE_WINDOW", self.close)
+        self.root.bind("<Escape>", lambda e: self.close("phím Esc"))
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self.close("nút đóng cửa sổ"))
         self.db = DB(cfg["paths"]["db"])
         self.period = int(1000 / cfg["kiosk"]["display_fps"])
 
@@ -65,12 +65,30 @@ class Kiosk:
         self.lbl_recent.pack(side="bottom", pady=12)
         self._photo = None
         self._t_recent = 0
+        self._n = 0
 
-    def close(self):
+    def close(self, why=""):
+        print(f"[A] đóng kiosk: {why}", flush=True)
         self.app.stop.set()
         self.root.quit()
 
     def tick(self):
+        try:
+            self._tick()
+        except Exception:  # noqa: BLE001
+            import traceback
+            traceback.print_exc()
+        if not self.app.stop.is_set():
+            self.root.after(self.period, self.tick)
+        else:
+            print("[A] kiosk dừng vì app.stop đã được đặt", flush=True)
+            self.root.quit()
+
+    def _tick(self):
+        if self._n == 0:
+            print(f"[A] kiosk đang chạy (cửa sổ {self.root.winfo_width()}x{self.root.winfo_height()}, "
+                  f"mapped={self.root.winfo_ismapped()})", flush=True)
+        self._n += 1
         m = self.app.poll()
         st = m.get("state", "idle")
         bg, color, title = STYLE.get(st, STYLE["idle"])
@@ -119,11 +137,9 @@ class Kiosk:
             self.lbl_recent.configure(text="Gần đây:\n" + "\n".join(
                 f'{datetime.fromisoformat(r[0].replace("Z", "+00:00")).astimezone():%H:%M}  '
                 f'{TYPE_VN.get(r[2], r[2]):3}  {r[1]}' for r in rows) if rows else "")
-        if not self.app.stop.is_set():
-            self.root.after(self.period, self.tick)
-        else:
-            self.root.quit()
 
     def run(self):
+        print("[A] mở cửa sổ kiosk…", flush=True)
         self.root.after(200, self.tick)
         self.root.mainloop()
+        print(f"[A] mainloop kết thúc sau {self._n} lần cập nhật", flush=True)

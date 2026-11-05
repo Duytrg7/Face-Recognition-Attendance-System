@@ -89,9 +89,9 @@ def check_quality(frame, face, q):
     br = float(g.mean())
     lo, hi = q["brightness"]
     if br < lo:
-        return False, "Thiếu sáng"
+        return False, f"Thiếu sáng ({br:.0f}<{lo})"
     if br > hi:
-        return False, "Quá sáng"
+        return False, f"Quá sáng ({br:.0f}>{hi})"
     if cv2.Laplacian(g, cv2.CV_64F).var() < q["min_sharpness"]:
         return False, "Giữ yên khuôn mặt"
     if face.landmarks is not None:

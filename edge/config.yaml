@@ -16,7 +16,7 @@ camera:
   height: 480
   fps: 30
   lock: true                 # khoá thông số bằng v4l2-ctl
-  exposure: 300              # đơn vị 100µs -> 30ms (chốt ở M1)
+  exposure: 500              # đơn vị 100µs -> 30ms (chốt ở M1)
   white_balance: 4600
   gain: 16                   # M1 chưa khoá gain; M2 cố định
 
@@ -30,7 +30,7 @@ quality:
   min_sharpness: 60          # phương sai Laplacian trên mặt resize 112x112
   brightness: [60, 200]
   yaw_ratio: [0.6, 1.6]      # cần landmark (YuNet)
-  margin_px: 10
+  margin_px: 2
 
 liveness:
   enabled: true
@@ -63,7 +63,7 @@ decision:
   lost_s: 1.0                # mất mặt quá lâu -> kết thúc track
   iou_track: 0.3
   result_show_s: 3.0
-  min_gap_min: 5             # khoảng cách tối thiểu giữa 2 bản ghi của 1 người (đặt 0.5 khi quay demo Vào/Ra)
+  min_gap_min: 0.5             # khoảng cách tối thiểu giữa 2 bản ghi của 1 người (đặt 0.5 khi quay demo Vào/Ra)
   day_start: "04:00"
 
 kiosk:
