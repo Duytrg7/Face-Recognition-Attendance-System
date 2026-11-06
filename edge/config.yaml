@@ -63,7 +63,7 @@ decision:
   lost_s: 1.0                # mất mặt quá lâu -> kết thúc track
   iou_track: 0.3
   result_show_s: 3.0
-  min_gap_min: 0.5             # khoảng cách tối thiểu giữa 2 bản ghi của 1 người (đặt 0.5 khi quay demo Vào/Ra)
+  min_gap_min: 5             # khoảng cách tối thiểu giữa 2 bản ghi của 1 người (đặt 0.5 khi quay demo Vào/Ra)
   day_start: "04:00"
 
 kiosk:
